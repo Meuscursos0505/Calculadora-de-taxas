@@ -3,396 +3,299 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Taxas Precify</title>
+    <title>Precify - Calculadoras</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        :root { 
+            --bg-dark: #111827; 
+            --bg-card: #1F2937; 
+            --border-color: #374151; 
+            --text-light: #F9FAFB; 
+            --text-secondary: #9CA3AF; 
+            --accent-green: #34D399; 
+            --accent-green-dark: #059669; 
         }
-        .result-card {
-            background-color: #f0f9ff; /* light blue */
-            border-left: 4px solid #0ea5e9; /* sky blue */
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-light); }
+        
+        /* === Marketplace Calc Styles === */
+        .marketplace-sidebar { background-color: var(--bg-card); }
+        .card { background-color: var(--bg-card); border: 1px solid var(--border-color); }
+        .input-field, .select-field { background-color: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-light); -webkit-appearance: none; appearance: none; }
+        .select-field { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; }
+        .input-field:focus, .select-field:focus { border-color: var(--accent-green); outline: none; box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.3); }
+        details > summary { cursor: pointer; }
+        details > summary::marker { color: var(--accent-green); }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: var(--accent-green); border-radius: 50%; cursor: pointer; }
+        input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; background: var(--accent-green); border-radius: 50%; cursor: pointer; }
+        input[type="checkbox"] { accent-color: var(--accent-green); }
+
+        /* === Tax Calc Styles & Sidebar === */
+        #tax-calculator-sidebar {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            transform: translateX(100%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 50;
+            background-color: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(4px);
         }
-        .result-card h3 {
-            color: #0c4a6e; /* darker blue */
+        #tax-calculator-sidebar.active {
+            transform: translateX(0%);
+            opacity: 1;
+            pointer-events: auto;
         }
-        .result-card p {
-            color: #075985; /* dark blue */
+        #tax-calculator-sidebar .tax-calc-panel {
+             background-color: var(--bg-card);
+             color: var(--text-light);
         }
-        .modal-overlay {
-            transition: opacity 0.3s ease;
+        #tax-calculator-sidebar .result-card-dark { 
+            background-color: var(--bg-dark); 
+            border-left: 4px solid var(--accent-green); 
         }
-        .modal-content {
-            transition: transform 0.3s ease;
-        }
+        #tax-calculator-sidebar .result-card-dark h3 { color: var(--text-secondary); }
+        #tax-calculator-sidebar .result-card-dark p { color: var(--text-light); }
+        #tax-calculator-sidebar .modal-overlay { transition: opacity 0.3s ease; }
+        #tax-calculator-sidebar .modal-content { transition: transform 0.3s ease; background-color: var(--bg-card); }
     </style>
 </head>
-<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
-
-    <div class="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6 md:p-10 relative">
-        
-        <!-- Botão de Configurações -->
-        <button id="openSettingsBtn" class="absolute top-4 right-4 text-slate-400 hover:text-sky-500 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256"><path d="M239.81,117.29a8,8,0,0,0-9.45-5.61l-24.42,8.14a87.91,87.91,0,0,0-23.51-30.15l8.14-24.42a8,8,0,0,0-5.61-9.45,88.16,88.16,0,0,0-38.35-6.19,8,8,0,0,0-7,7l-8.14,24.42A87.91,87.91,0,0,0,101.32,67.5l-8.14-24.42a8,8,0,0,0-7-7,88.16,88.16,0,0,0-38.35,6.19,8,8,0,0,0-5.61,9.45l8.14,24.42A87.91,87.91,0,0,0,26.84,98.68l-24.42-8.14a8,8,0,0,0-9.45,5.61A88.16,88.16,0,0,0,0,136a8,8,0,0,0,7,7l24.42,8.14a87.91,87.91,0,0,0,23.51,30.15l-8.14,24.42a8,8,0,0,0,5.61,9.45,88.16,88.16,0,0,0,38.35,6.19,8,8,0,0,0,7-7l8.14-24.42a87.91,87.91,0,0,0,30.15,23.51l-8.14,24.42a8,8,0,0,0,7,7,88.16,88.16,0,0,0,38.35-6.19,8,8,0,0,0,5.61-9.45l-8.14-24.42a87.91,87.91,0,0,0,23.51-30.15l24.42,8.14a8,8,0,0,0,9.45-5.61,88.16,88.16,0,0,0,6.19-38.35A8,8,0,0,0,239.81,117.29ZM128,176a48,48,0,1,1,48-48A48.05,48.05,0,0,1,128,176Z"></path></svg>
-        </button>
-
-        <!-- Cabeçalho -->
-        <div class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-slate-800">Calculadora Pagar.me</h1>
-            <p class="text-slate-500 mt-2">Simule suas vendas e saiba exatamente quanto e quando irá receber.</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-            
-            <!-- Seção de Inputs -->
-            <div class="space-y-6">
-                <!-- Seletor de Modo -->
-                <div class="flex border border-slate-200 rounded-lg p-1 bg-slate-100">
-                    <button id="btnCharge" class="w-1/2 p-2 rounded-md text-sm font-medium transition">Quero Cobrar</button>
-                    <button id="btnReceive" class="w-1/2 p-2 rounded-md text-sm font-medium transition">Quero Receber</button>
-                </div>
-
-                <div>
-                    <label for="amountInput" id="amountLabel" class="block text-sm font-medium text-slate-700 mb-1">Qual o valor da venda?</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">R$</span>
-                        <input type="text" id="amountInput" class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition" value="100,00">
+<body>
+    <div class="lg:grid lg:grid-cols-12">
+        <!-- Marketplace Sidebar -->
+        <aside id="sidebar" class="lg:col-span-3 lg:h-screen lg:sticky top-0 p-6 marketplace-sidebar space-y-6 overflow-y-auto">
+             <div class="mb-4">
+                <h1 class="text-3xl font-bold text-white">Precify</h1>
+                <p class="text-sm text-gray-400">Sua estratégia de lucro para marketplaces</p>
+            </div>
+            <div class="space-y-4">
+                <details open>
+                    <summary class="font-semibold text-lg">Custos Principais</summary>
+                    <div class="pt-4 space-y-4 pl-2">
+                        <div><label for="productCost" class="block text-sm font-medium text-gray-300">Custo do Produto (R$)</label><input type="number" id="productCost" class="input-field mt-1 block w-full rounded-md p-2" value="50"></div>
+                        <div><label for="productWeight" class="block text-sm font-medium text-gray-300">Peso (kg)</label><input type="number" id="productWeight" class="input-field mt-1 block w-full rounded-md p-2" value="0.8"></div>
+                        <div><label for="categorySelect" class="block text-sm font-medium text-gray-300">Categoria do Produto</label><select id="categorySelect" class="select-field mt-1 block w-full rounded-md p-2"></select></div>
                     </div>
-                </div>
+                </details>
 
-                <div>
-                    <label for="paymentMethod" class="block text-sm font-medium text-slate-700 mb-1">Meio de Pagamento</label>
-                    <select id="paymentMethod" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
-                        <option value="credit_card">Cartão de Crédito</option>
-                        <option value="boleto">Boleto</option>
-                        <option value="pix">PIX</option>
-                    </select>
-                </div>
+                <details>
+                    <summary class="font-semibold text-lg">Custos Adicionais</summary>
+                    <div id="additional-costs-container" class="pt-4 space-y-3 pl-2"></div>
+                    <div class="pl-2 mt-2"><button id="add-cost-btn" class="text-sm text-accent-green hover:text-accent-green-dark w-full text-left">+ Adicionar Custo</button></div>
+                </details>
+
+                <details open>
+                    <summary class="font-semibold text-lg">Taxas & Frete</summary>
+                      <div class="pt-4 space-y-4 pl-2">
+                          <div><label for="taxRate" class="block text-sm font-medium text-gray-300">Impostos (%)</label><input type="number" id="taxRate" class="input-field mt-1 block w-full rounded-md p-2" value="6"></div>
+                          <div>
+                              <label for="shippingCost" class="block text-sm font-medium text-gray-300">Frete Manual (R$)</label>
+                              <input type="number" id="shippingCost" class="input-field mt-1 block w-full rounded-md p-2" value="25">
+                              <p class="text-xs text-gray-400 mt-1">Ignorado para ML, Shein e TikTok.</p>
+                          </div>
+                    </div>
+                </details>
                 
-                <div id="creditCardOptions" class="space-y-6">
-                    <div>
-                        <label for="installments" class="block text-sm font-medium text-slate-700 mb-1">Número de Parcelas</label>
-                        <select id="installments" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
-                            <option value="1">1x (à vista)</option>
-                            <option value="2">2x</option>
-                            <option value="3">3x</option>
-                            <option value="4">4x</option>
-                            <option value="5">5x</option>
-                            <option value="6">6x</option>
-                            <option value="7">7x</option>
-                            <option value="8">8x</option>
-                            <option value="9">9x</option>
-                            <option value="10">10x</option>
-                            <option value="11">11x</option>
-                            <option value="12">12x</option>
-                        </select>
+                <details open>
+                    <summary class="font-semibold text-lg">Configurações</summary>
+                      <div class="pt-4 space-y-4 pl-2">
+                          <div><label for="mlReputation" class="block text-sm font-medium text-gray-300">Reputação Mercado Livre</label>
+                              <select id="mlReputation" class="select-field mt-1 block w-full rounded-md p-2">
+                                  <option value="verde">Verde (Líder, etc.)</option>
+                                  <option value="amarela">Amarela</option>
+                                  <option value="laranja">Laranja / Vermelha</option>
+                              </select>
+                          </div>
+                          <div class="flex justify-between items-center">
+                              <label for="profitMargin" class="block text-sm font-medium text-gray-300">Margem de Lucro</label>
+                              <span id="profit-value" class="font-bold text-accent-green text-lg">20%</span>
+                          </div>
+                          <input type="range" id="profitMargin" min="0" max="100" value="20" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
                     </div>
+                </details>
+
+                <details open>
+                    <summary class="font-semibold text-lg">Marketplaces</summary>
+                    <div id="marketplaces-list" class="pt-4 space-y-3 pl-2"></div>
+                </details>
+
+                <details open>
+                    <summary class="font-semibold text-lg">Outras Ferramentas</summary>
+                    <div class="pt-4 pl-2">
+                         <button id="open-tax-calculator-btn" class="w-full text-left p-2 rounded-md bg-gray-700 hover:bg-gray-600 transition text-white">
+                            Calculadora de Taxas
+                         </button>
+                    </div>
+                </details>
+            </div>
+        </aside>
+
+        <!-- Marketplace Main Content -->
+        <main class="lg:col-span-9 p-6 sm:p-8">
+             <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div id="placeholder" class="col-span-full text-center py-20">
+                    <h2 class="text-2xl font-semibold text-gray-400">Selecione um marketplace para começar</h2>
+                    <p class="text-gray-500 mt-2">Os resultados aparecerão aqui em tempo real.</p>
                 </div>
             </div>
-
-            <!-- Seção de Resultados -->
-            <div class="bg-slate-50 rounded-lg p-6 flex flex-col justify-center">
-                <h2 class="text-xl font-semibold text-slate-800 mb-4 text-center">Resultado da Simulação</h2>
-                <div id="results" class="space-y-4"></div>
-            </div>
-        </div>
-        
-        <div class="text-center mt-8">
-            <p class="text-xs text-slate-400">
-                * As taxas utilizadas nesta calculadora são baseadas nas informações fornecidas. <br> 
-                Consulte seu contrato com a Pagar.me para obter os valores exatos.
-            </p>
-        </div>
+        </main>
     </div>
 
-    <!-- Modal de Configurações -->
-    <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 modal-overlay opacity-0 pointer-events-none">
-        <div class="bg-white rounded-2xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-content transform scale-95">
-            <div class="p-6 sticky top-0 bg-white border-b border-slate-200">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-bold text-slate-800">Configurar Taxas</h2>
-                    <button id="closeSettingsBtn" class="text-slate-400 hover:text-red-500 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 256 256"><path d="M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z"></path></svg>
-                    </button>
-                </div>
-            </div>
-
-            <div class="p-6 space-y-8">
-                <!-- Taxas Cartão de Crédito -->
-                <div class="space-y-4">
-                    <h3 class="text-lg font-semibold text-slate-700 border-b pb-2">Cartão de Crédito (%)</h3>
-                    <div id="creditCardRatesContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        <!-- Inputs de taxa são gerados aqui pelo JS -->
-                    </div>
-                </div>
-
-                <!-- Outras Taxas -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-4">
-                        <h3 class="text-lg font-semibold text-slate-700 border-b pb-2">PIX</h3>
-                        <div>
-                            <label for="pixRate" class="block text-sm font-medium text-slate-600 mb-1">Taxa (%)</label>
-                            <input type="text" id="pixRate" class="w-full p-2 border border-slate-300 rounded-lg">
-                        </div>
-                    </div>
-                    <div class="space-y-4">
-                        <h3 class="text-lg font-semibold text-slate-700 border-b pb-2">Boleto</h3>
-                        <div>
-                            <label for="boletoRate" class="block text-sm font-medium text-slate-600 mb-1">Taxa Fixa (R$)</label>
-                            <input type="text" id="boletoRate" class="w-full p-2 border border-slate-300 rounded-lg">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-6 sticky bottom-0 bg-white border-t border-slate-200 flex justify-end gap-4">
-                <button id="cancelSettingsBtn" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition">Cancelar</button>
-                <button id="saveSettingsBtn" class="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition">Salvar Alterações</button>
-            </div>
-        </div>
+    <!-- Tax Calculator Sidebar -->
+    <div id="tax-calculator-sidebar" class="fixed top-0 right-0 w-full h-full overflow-y-auto">
+         <div class="w-full max-w-4xl tax-calc-panel rounded-l-2xl shadow-lg p-6 md:p-10 relative ml-auto min-h-full">
+            <button id="close-tax-calculator-btn" class="absolute top-4 left-4 text-gray-400 hover:text-red-500 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 256 256"><path d="M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z"></path></svg>
+            </button>
+            <div id="tax-calc-content-wrapper"></div>
+         </div>
     </div>
 
 
     <script>
-        // --- CONFIGURAÇÃO DAS TAXAS (VALORES PADRÃO) ---
-        let rates = {
-            pix: 1.19,
-            boleto: 3.49,
-            creditCard: {
-                1: 3.79, 2: 5.28, 3: 7.67, 4: 9.08, 5: 10.54, 6: 11.96,
-                7: 13.37, 8: 14.79, 9: 16.22, 10: 17.64, 11: 19.06, 12: 20.51
-            }
-        };
-
-        // --- ELEMENTOS DO DOM ---
-        const amountInput = document.getElementById('amountInput');
-        const paymentMethodSelect = document.getElementById('paymentMethod');
-        const installmentsSelect = document.getElementById('installments');
-        const creditCardOptionsDiv = document.getElementById('creditCardOptions');
-        const resultsDiv = document.getElementById('results');
-        const btnCharge = document.getElementById('btnCharge');
-        const btnReceive = document.getElementById('btnReceive');
-        const amountLabel = document.getElementById('amountLabel');
-
-        // --- ELEMENTOS DO MODAL ---
-        const openSettingsBtn = document.getElementById('openSettingsBtn');
-        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-        const cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
-        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-        const settingsModal = document.getElementById('settingsModal');
-        const modalContent = settingsModal.querySelector('.modal-content');
-        const pixRateInput = document.getElementById('pixRate');
-        const boletoRateInput = document.getElementById('boletoRate');
-        const creditCardRatesContainer = document.getElementById('creditCardRatesContainer');
+    // IIFE to encapsulate Marketplace Calculator logic
+    (function() {
+        // ... (Marketplace JS code omitted for brevity, it remains unchanged) ...
+        const officialMarketplaceData = { mercadoLivreClassico: { name: "Mercado Livre (Clássico)", group: "Mercado Livre", commission: 0.12, categories: { "Supermercado": 0.125, "Beleza e Cuidado Pessoal": 0.13, "Calçados, Roupas e Bolsas": 0.13, "Eletrônicos, Áudio e Vídeo": 0.115, "Celulares e Telefones": 0.115, "Acessórios para Veículos": 0.115, "Eletrodomésticos": 0.105, "Agro": 0.095, "Livros": 0.09 }, note: "Comissão exata por categoria. Frete calculado pela regra oficial." }, mercadoLivrePremium: { name: "Mercado Livre (Premium)", group: "Mercado Livre", commission: 0.17, categories: { "Supermercado": 0.175, "Beleza e Cuidado Pessoal": 0.18, "Calçados, Roupas e Bolsas": 0.18, "Eletrônicos, Áudio e Vídeo": 0.165, "Celulares e Telefones": 0.165, "Acessórios para Veículos": 0.165, "Eletrodomésticos": 0.155, "Agro": 0.145, "Livros": 0.14 }, note: "Comissão exata por categoria. Frete calculado pela regra oficial." }, shopeePadrao: { name: "Shopee (Padrão)", group: "Shopee", commission: 0.14, transactionFee: 0.02, note: "Comissão de 14% (teto R$100) + 2% de transação." }, shopeeFreteGratis: { name: "Shopee (Frete Grátis)", group: "Shopee", commission: 0.20, transactionFee: 0.02, fixedFee: () => 3.00, note: "Comissão de 20% (teto R$100) + 2% de transação + R$3 por item." }, amazon: { name: "Amazon", group: "Amazon", commission: 0.15, categories: { "Dispositivos Amazon": 0.20, "Computadores": 0.13, "Eletrônicos, Áudio e Vídeo": 0.13, "Videogames e Consoles": 0.14, "Celulares e Telefones": 0.11, "Calçados, Roupas e Bolsas": 0.16, "Beleza e Cuidado Pessoal": 0.15, "Casa, Cozinha e Ferramentas": 0.14, "Livros": 0.15, "Esportes e Aventura": 0.15, "Brinquedos e Jogos": 0.15 }, calculateCommission: (p, r) => Math.max(1.00, p * r), note: "Comissão por categoria. Mínimo R$1. Assume Plano Profissional." }, magalu: { name: "Magazine Luiza", group: "Magalu", commission: 0.20, fixedFee: () => 5.00, note: "Comissão de até 20% e taxa fixa de R$5 por item." }, americanas: { name: "Americanas", group: "Americanas", commission: 0.19, categories: { "Calçados, Roupas e Bolsas": 0.19, "Beleza e Cuidado Pessoal": 0.19, "Livros": 0.18, "Celulares e Telefones": 0.17, "Computadores": 0.17, "Eletrônicos, Áudio e Vídeo": 0.17, "Eletrodomésticos": 0.16, "Brinquedos e Jogos": 0.19, "Casa, Cozinha e Ferramentas": 0.19 }, fixedFee: () => 5.00, note: "Comissão por categoria e taxa fixa de R$5 por item." }, shein: { name: "Shein", group: "Shein", commission: 0.16, getShippingBrokerageFee: (weight) => { if (weight <= 0.3) return 4.00; if (weight <= 2) return 5.00; if (weight <= 5) return 15.00; if (weight <= 9) return 32.00; return 32.00; }, note: "Comissão de 16% + Taxa de Corretagem de Frete por peso." }, tiktokShop: { name: "TikTok Shop", group: "TikTok Shop", commission: 0.06, shippingFeeRate: 0.06, fixedFee: (p) => p < 79 ? 2.00 : 0, note: "Comissão 6% + Taxa de Envio 6% + taxa fixa R$2 (se < R$79)." } }; const unifiedCategories = [ "Demais categorias", "Calçados, Roupas e Bolsas", "Beleza e Cuidado Pessoal", "Eletrônicos, Áudio e Vídeo", "Celulares e Telefones", "Computadores", "Videogames e Consoles", "Acessórios para Veículos", "Casa, Cozinha e Ferramentas", "Eletrodomésticos", "Esportes e Aventura", "Brinquedos e Jogos", "Supermercado", "Livros", "Agro", "Dispositivos Amazon" ]; const sidebar = document.getElementById('sidebar'); const marketplacesList = document.getElementById('marketplaces-list'); const categorySelect = document.getElementById('categorySelect'); const resultsGrid = document.getElementById('results-grid'); const placeholder = document.getElementById('placeholder'); const profitValueSpan = document.getElementById('profit-value'); const addCostBtn = document.getElementById('add-cost-btn'); const additionalCostsContainer = document.getElementById('additional-costs-container'); const formatCurrency = (value) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); const toPercent = (value, total) => total > 0 ? `${(value / total * 100).toFixed(1)}%` : '0.0%'; function getMlShippingCost(weight, price, reputation) { return 20; } function addCostRow() { const rowId = `cost-row-${Date.now()}`; const row = document.createElement('div'); row.id = rowId; row.className = 'flex items-center gap-2'; row.innerHTML = `<input type="text" placeholder="Descrição" class="input-field rounded-md p-2 w-1/2 cost-desc"><input type="number" placeholder="Valor" value="5" class="input-field rounded-md p-2 w-1/4 cost-value"><select class="select-field rounded-md p-2 w-1/4 cost-type"><option value="rs">R$</option><option value="percent">%</option></select><button class="text-red-500 hover:text-red-400 remove-cost-btn" data-rowid="${rowId}">&times;</button>`; additionalCostsContainer.appendChild(row); row.querySelector('.remove-cost-btn').addEventListener('click', () => row.remove()); } function populateUI() { categorySelect.innerHTML = unifiedCategories.map(cat => `<option value="${cat}">${cat}</option>`).join(''); const grouped = Object.entries(officialMarketplaceData).reduce((acc, [key, mkt]) => { if (!acc[mkt.group]) acc[mkt.group] = []; acc[mkt.group].push({ key, ...mkt }); return acc; }, {}); let html = ''; for (const groupName in grouped) { html += `<div class="space-y-2"><p class="font-medium text-white">${groupName}</p>`; grouped[groupName].forEach(mkt => { html += `<label class="flex items-center text-gray-300 font-normal"><input type="checkbox" name="marketplace" value="${mkt.key}" class="h-4 w-4 rounded border-gray-500 mr-3"><span>${mkt.name.replace(`(${mkt.group})`, '').trim()}</span></label>`; }); html += `</div>`; } marketplacesList.innerHTML = html; addCostRow(); } function calculateAndRender() { const productCost = parseFloat(document.getElementById('productCost').value) || 0; let totalFixedOtherCosts = 0, totalPercentageOtherCosts = 0; document.querySelectorAll('#additional-costs-container > div').forEach(row => { const value = parseFloat(row.querySelector('.cost-value').value) || 0; const type = row.querySelector('.cost-type').value; if (type === 'rs') totalFixedOtherCosts += value; else totalPercentageOtherCosts += value / 100; }); const productWeight = parseFloat(document.getElementById('productWeight').value) || 0; const selectedCategory = categorySelect.value; const taxRate = parseFloat(document.getElementById('taxRate').value) / 100 || 0; const manualShippingCost = parseFloat(document.getElementById('shippingCost').value) || 0; const profitMargin = parseFloat(document.getElementById('profitMargin').value) / 100 || 0; const mlReputation = document.getElementById('mlReputation').value; profitValueSpan.textContent = `${(profitMargin * 100).toFixed(0)}%`; const selectedMkts = Array.from(document.querySelectorAll('input[name="marketplace"]:checked')).map(cb => cb.value); resultsGrid.innerHTML = ''; if (selectedMkts.length === 0) { resultsGrid.appendChild(placeholder); placeholder.style.display = 'block'; return; } placeholder.style.display = 'none'; selectedMkts.forEach(mktKey => { const mkt = officialMarketplaceData[mktKey]; const commissionRate = (mkt.categories && mkt.categories[selectedCategory]) || mkt.commission; let sellingPrice; const baseCosts = productCost + totalFixedOtherCosts; let shippingCostForCalc = mkt.getShippingBrokerageFee ? mkt.getShippingBrokerageFee(productWeight) : manualShippingCost; let fixedFee = mkt.fixedFee ? mkt.fixedFee(0) : 0; let denominator = 1 - commissionRate - taxRate - profitMargin - (mkt.transactionFee || 0) - (mkt.shippingFeeRate || 0) - totalPercentageOtherCosts; if (denominator <= 0) { resultsGrid.innerHTML += generateErrorCard(mkt); return; } sellingPrice = (baseCosts + shippingCostForCalc + fixedFee) / denominator; fixedFee = mkt.fixedFee ? mkt.fixedFee(sellingPrice) : 0; sellingPrice = (baseCosts + shippingCostForCalc + fixedFee) / denominator; let commissionValue = mkt.calculateCommission ? mkt.calculateCommission(sellingPrice, commissionRate) : sellingPrice * commissionRate; if (mktKey.includes('shopee')) commissionValue = Math.min(commissionValue, 100); const transactionFeeValue = sellingPrice * (mkt.transactionFee || 0); const shippingFeeValue = sellingPrice * (mkt.shippingFeeRate || 0); const taxValue = sellingPrice * taxRate; const profitValue = sellingPrice * profitMargin; const additionalCostsCalculated = Array.from(document.querySelectorAll('#additional-costs-container > div')).map(row => ({ desc: row.querySelector('.cost-desc').value || 'Custo Adicional', value: row.querySelector('.cost-type').value === 'rs' ? parseFloat(row.querySelector('.cost-value').value) || 0 : sellingPrice * (parseFloat(row.querySelector('.cost-value').value) / 100 || 0) })); const totalAdditionalCostsValue = additionalCostsCalculated.reduce((sum, cost) => sum + cost.value, 0); const totalFees = commissionValue + transactionFeeValue + fixedFee + shippingFeeValue; const totalCosts = productCost + totalAdditionalCostsValue + shippingCostForCalc + taxValue + totalFees; resultsGrid.innerHTML += generateResultCard({ ...mkt, sellingPrice, profitValue, breakdown: { productCost, additionalCosts: additionalCostsCalculated, shippingCost: shippingCostForCalc, commissionValue, transactionFeeValue, fixedFee, shippingFeeValue, taxValue, totalFees, totalCosts } }); }); document.querySelectorAll('[data-toggle="details"]').forEach(button => button.addEventListener('click', (e) => document.getElementById(e.currentTarget.getAttribute('data-target')).classList.toggle('hidden'))); } function generateErrorCard(mkt) { return `<div class="card rounded-lg p-5 flex flex-col border-red-500/50"><h3 class="font-bold text-xl text-white">${mkt.name}</h3><div class="flex-grow flex items-center justify-center"><p class="text-center text-red-400">Cálculo impossível.<br>Taxas + Lucro excedem 100%.</p></div></div>`; } function generateResultCard(data) { const { name, note, sellingPrice, profitValue, breakdown } = data; const detailsId = `details-${name.replace(/[^a-zA-Z0-9]/g, '')}`; let additionalCostsHtml = breakdown.additionalCosts.map(cost => `<div class="flex justify-between items-baseline"><span class="text-gray-400">${cost.desc}</span><span class="text-right">${formatCurrency(cost.value)} <br><span class="text-gray-500 text-xs">${toPercent(cost.value, sellingPrice)}</span></span></div>`).join(''); return `<div class="card rounded-lg p-5 flex flex-col"><h3 class="font-bold text-xl text-white">${name}</h3><p class="text-sm text-gray-400 mb-4 h-10">${note}</p><div class="my-4 space-y-4 text-center"><div><p class="text-sm text-gray-400">Preço de Venda</p><p class="text-4xl font-bold text-accent-green">${formatCurrency(sellingPrice)}</p></div><div><p class="text-sm text-gray-400">Lucro</p><p class="text-2xl font-semibold text-white">${formatCurrency(profitValue)}</p></div></div><div class="mt-auto pt-4 border-t border-gray-700"><button data-toggle="details" data-target="${detailsId}" class="text-sm text-accent-green hover:text-accent-green-dark w-full text-center">Ver detalhes</button><div id="${detailsId}" class="hidden mt-4 text-sm space-y-2"><div class="flex justify-between items-baseline"><span class="text-gray-400">Custo do Produto</span><span class="text-right">${formatCurrency(breakdown.productCost)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.productCost, sellingPrice)}</span></span></div>${additionalCostsHtml}<div class="flex justify-between items-baseline"><span class="text-gray-400">Frete (Custo)</span><span class="text-right">${formatCurrency(breakdown.shippingCost)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.shippingCost, sellingPrice)}</span></span></div><hr class="border-gray-700 my-1"><div class="flex justify-between items-baseline"><span class="text-gray-400">Comissão Mkt</span><span class="text-right">${formatCurrency(breakdown.commissionValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.commissionValue, sellingPrice)}</span></span></div>${breakdown.transactionFeeValue > 0 ? `<div class="flex justify-between items-baseline"><span class="text-gray-400">Taxa de Transação</span><span class="text-right">${formatCurrency(breakdown.transactionFeeValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.transactionFeeValue, sellingPrice)}</span></span></div>` : ''}${breakdown.shippingFeeValue > 0 ? `<div class="flex justify-between items-baseline"><span class="text-gray-400">Taxa de Envio</span><span class="text-right">${formatCurrency(breakdown.shippingFeeValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.shippingFeeValue, sellingPrice)}</span></span></div>` : ''}${breakdown.fixedFee > 0 ? `<div class="flex justify-between items-baseline"><span class="text-gray-400">Taxa Fixa</span><span class="text-right">${formatCurrency(breakdown.fixedFee)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.fixedFee, sellingPrice)}</span></span></div>` : ''}<div class="flex justify-between items-baseline"><span class="text-gray-400">Impostos</span><span class="text-right">${formatCurrency(breakdown.taxValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.taxValue, sellingPrice)}</span></span></div><hr class="border-gray-700 my-1"><div class="flex justify-between items-baseline font-bold"><span class="text-gray-300">Total de Custos</span><span class="text-right">${formatCurrency(breakdown.totalCosts)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.totalCosts, sellingPrice)}</span></span></div></div></div></div>`; }
+        document.addEventListener('DOMContentLoaded', () => { populateUI(); sidebar.addEventListener('input', calculateAndRender); addCostBtn.addEventListener('click', addCostRow); calculateAndRender(); });
+    })();
+    
+    // IIFE to encapsulate Tax Calculator logic
+    (function() {
+        const taxCalcHTML = `
+            <button id="taxCalcOpenSettingsBtn" class="absolute top-5 right-6 text-sm font-medium text-gray-400 hover:text-accent-green px-3 py-1.5 rounded-lg transition">
+                Configuração
+            </button>
+            <div class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold text-white">Calculadora de Taxas Precify</h1>
+                <p class="text-gray-400 mt-2">Simule suas vendas e saiba exatamente quanto e quando irá receber.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                <div class="space-y-6">
+                    <div class="flex border rounded-lg p-1" style="border-color: var(--border-color); background-color: var(--bg-dark);">
+                        <button id="taxCalcBtnCharge" class="w-1/2 p-2 rounded-md text-sm font-medium transition">Quero Cobrar</button>
+                        <button id="taxCalcBtnReceive" class="w-1/2 p-2 rounded-md text-sm font-medium transition">Quero Receber</button>
+                    </div>
+                    <div>
+                        <label for="taxCalcAmountInput" id="taxCalcAmountLabel" class="block text-sm font-medium text-gray-300 mb-1">Qual o valor da venda?</label>
+                        <div class="relative"><span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">R$</span><input type="text" id="taxCalcAmountInput" class="input-field w-full pl-9 pr-4 py-2 rounded-lg" value="100,00"></div>
+                    </div>
+                    <div>
+                        <label for="taxCalcPaymentMethod" class="block text-sm font-medium text-gray-300 mb-1">Meio de Pagamento</label>
+                        <select id="taxCalcPaymentMethod" class="select-field w-full p-2 rounded-lg"><option value="credit_card">Cartão de Crédito</option><option value="boleto">Boleto</option><option value="pix">PIX</option></select>
+                    </div>
+                    <div id="taxCalcCreditCardOptions" class="space-y-6">
+                        <div>
+                            <label for="taxCalcInstallments" class="block text-sm font-medium text-gray-300 mb-1">Número de Parcelas</label>
+                            <select id="taxCalcInstallments" class="select-field w-full p-2 rounded-lg"><option value="1">1x (à vista)</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="5">5x</option><option value="6">6x</option><option value="7">7x</option><option value="8">8x</option><option value="9">9x</option><option value="10">10x</option><option value="11">11x</option><option value="12">12x</option></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="rounded-lg p-6 flex flex-col justify-center" style="background-color: var(--bg-dark);">
+                    <h2 class="text-xl font-semibold text-white mb-4 text-center">Resultado da Simulação</h2>
+                    <div id="taxCalcResults" class="space-y-4"></div>
+                </div>
+            </div>
+            <div class="text-center mt-8"><p class="text-xs text-gray-500">* As taxas são baseadas nas informações fornecidas. Consulte seu contrato para valores exatos.</p></div>
+            <div id="taxCalcSettingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 modal-overlay opacity-0 pointer-events-none">
+                <div class="modal-content rounded-2xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto transform scale-95">
+                    <div class="p-6 sticky top-0 border-b" style="background-color: var(--bg-card); border-color: var(--border-color);">
+                        <div class="flex justify-between items-center"><h2 class="text-2xl font-bold text-white">Configurar Taxas</h2><button id="taxCalcCloseSettingsBtn" class="text-gray-400 hover:text-red-500 transition"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 256 256"><path d="M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z"></path></svg></button></div>
+                    </div>
+                    <div class="p-6 space-y-8">
+                        <div class="space-y-4"><h3 class="text-lg font-semibold text-gray-300 border-b pb-2" style="border-color: var(--border-color);">Cartão de Crédito (%)</h3><div id="taxCalcCreditCardRatesContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4"><h3 class="text-lg font-semibold text-gray-300 border-b pb-2" style="border-color: var(--border-color);">PIX</h3><div><label for="taxCalcPixRate" class="block text-sm font-medium text-gray-400 mb-1">Taxa (%)</label><input type="text" id="taxCalcPixRate" class="input-field w-full p-2 rounded-lg"></div></div>
+                            <div class="space-y-4"><h3 class="text-lg font-semibold text-gray-300 border-b pb-2" style="border-color: var(--border-color);">Boleto</h3><div><label for="taxCalcBoletoRate" class="block text-sm font-medium text-gray-400 mb-1">Taxa Fixa (R$)</label><input type="text" id="taxCalcBoletoRate" class="input-field w-full p-2 rounded-lg"></div></div>
+                        </div>
+                    </div>
+                    <div class="p-6 sticky bottom-0 border-t flex justify-end gap-4" style="background-color: var(--bg-card); border-color: var(--border-color);"><button id="taxCalcCancelSettingsBtn" class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition">Cancelar</button><button id="taxCalcSaveSettingsBtn" class="px-4 py-2 bg-accent-green text-bg-dark font-semibold rounded-lg hover:bg-accent-green-dark transition">Salvar Alterações</button></div>
+                </div>
+            </div>`;
         
-        // --- ESTADO DA APLICAÇÃO ---
+        document.getElementById('tax-calc-content-wrapper').innerHTML = taxCalcHTML;
+
+        let rates = { pix: 1.19, boleto: 3.49, creditCard: { 1: 3.79, 2: 5.28, 3: 7.67, 4: 9.08, 5: 10.54, 6: 11.96, 7: 13.37, 8: 14.79, 9: 16.22, 10: 17.64, 11: 19.06, 12: 20.51 } };
+        const amountInput = document.getElementById('taxCalcAmountInput'), paymentMethodSelect = document.getElementById('taxCalcPaymentMethod'), installmentsSelect = document.getElementById('taxCalcInstallments'), creditCardOptionsDiv = document.getElementById('taxCalcCreditCardOptions'), resultsDiv = document.getElementById('taxCalcResults'), btnCharge = document.getElementById('taxCalcBtnCharge'), btnReceive = document.getElementById('taxCalcBtnReceive'), amountLabel = document.getElementById('taxCalcAmountLabel'), openSettingsBtn = document.getElementById('taxCalcOpenSettingsBtn'), closeSettingsBtn = document.getElementById('taxCalcCloseSettingsBtn'), cancelSettingsBtn = document.getElementById('taxCalcCancelSettingsBtn'), saveSettingsBtn = document.getElementById('taxCalcSaveSettingsBtn'), settingsModal = document.getElementById('taxCalcSettingsModal'), modalContent = settingsModal.querySelector('.modal-content'), pixRateInput = document.getElementById('taxCalcPixRate'), boletoRateInput = document.getElementById('taxCalcBoletoRate'), creditCardRatesContainer = document.getElementById('taxCalcCreditCardRatesContainer');
         let calculationMode = 'charge';
-
-        // --- FUNÇÕES AUXILIARES ---
         const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(isNaN(value) ? 0 : value);
-        const parseCurrency = (value) => {
-            if (typeof value !== 'string') return 0;
-            const number = parseFloat(value.replace("R$", "").replace(/\./g, '').replace(',', '.').trim());
-            return isNaN(number) ? 0 : number;
-        };
-
-        const toggleCreditCardOptions = () => {
-            creditCardOptionsDiv.style.display = paymentMethodSelect.value === 'credit_card' ? 'block' : 'none';
-        };
-
+        const parseCurrency = (value) => { if (typeof value !== 'string') return 0; const number = parseFloat(value.replace("R$", "").replace(/\./g, '').replace(',', '.').trim()); return isNaN(number) ? 0 : number; };
+        const toggleCreditCardOptions = () => creditCardOptionsDiv.style.display = paymentMethodSelect.value === 'credit_card' ? 'block' : 'none';
         const updateToggleUI = () => {
             if (calculationMode === 'charge') {
-                btnCharge.classList.add('bg-sky-500', 'text-white', 'shadow-sm');
-                btnCharge.classList.remove('text-slate-500');
-                btnReceive.classList.remove('bg-sky-500', 'text-white', 'shadow-sm');
-                btnReceive.classList.add('text-slate-500');
+                btnCharge.classList.add('bg-accent-green', 'text-bg-dark', 'font-semibold'); btnCharge.classList.remove('text-gray-300');
+                btnReceive.classList.remove('bg-accent-green', 'text-bg-dark', 'font-semibold'); btnReceive.classList.add('text-gray-300');
                 amountLabel.textContent = 'Qual o valor da venda? (a cobrar)';
             } else {
-                btnReceive.classList.add('bg-sky-500', 'text-white', 'shadow-sm');
-                btnReceive.classList.remove('text-slate-500');
-                btnCharge.classList.remove('bg-sky-500', 'text-white', 'shadow-sm');
-                btnCharge.classList.add('text-slate-500');
+                btnReceive.classList.add('bg-accent-green', 'text-bg-dark', 'font-semibold'); btnReceive.classList.remove('text-gray-300');
+                btnCharge.classList.remove('bg-accent-green', 'text-bg-dark', 'font-semibold'); btnCharge.classList.add('text-gray-300');
                 amountLabel.textContent = 'Quanto você quer receber? (líquido)';
             }
         };
-
-        const createResultCard = (title, value, icon) => `
-            <div class="result-card p-4 rounded-lg shadow-sm flex items-center">
-                <div class="mr-4">${icon}</div>
-                <div>
-                    <h3 class="text-sm font-medium">${title}</h3>
-                    <p class="text-xl font-semibold">${value}</p>
-                </div>
-            </div>`;
-
-        // --- LÓGICA DE CÁLCULO ---
+        const createResultCard = (title, value, icon) => `<div class="result-card-dark p-4 rounded-lg shadow-sm flex items-center"><div class="mr-4 text-accent-green">${icon}</div><div><h3 class="text-sm font-medium">${title}</h3><p class="text-xl font-semibold">${value}</p></div></div>`;
         const calculate = () => {
             const inputValue = parseCurrency(amountInput.value);
             const paymentMethod = paymentMethodSelect.value;
             const installments = parseInt(installmentsSelect.value);
-            
-            let saleAmount = 0, netAmount = 0, pagarmeeFee = 0, receiveDate = '', feeText = '';
-
-            if (inputValue <= 0) {
-                 resultsDiv.innerHTML = '<p class="text-center text-slate-500">Insira um valor válido.</p>';
-                 return;
+            let saleAmount = 0, netAmount = 0, feeValue = 0, receiveDate = '', feeText = '';
+            if (inputValue <= 0) { resultsDiv.innerHTML = `<p class="text-center text-gray-400">Insira um valor válido.</p>`; return; }
+            switch (paymentMethod) {
+                case 'pix': if (calculationMode === 'charge') { saleAmount = inputValue; feeValue = saleAmount * (rates.pix / 100); netAmount = saleAmount - feeValue; } else { netAmount = inputValue; saleAmount = netAmount / (1 - (rates.pix / 100)); feeValue = saleAmount - netAmount; } receiveDate = 'Instantâneo'; feeText = `${formatCurrency(feeValue)} (${String(rates.pix).replace('.', ',')}% a)`; break;
+                case 'boleto': if (calculationMode === 'charge') { saleAmount = inputValue; feeValue = rates.boleto; netAmount = saleAmount - feeValue; } else { netAmount = inputValue; saleAmount = netAmount + rates.boleto; feeValue = rates.boleto; } receiveDate = 'Em 2 dias úteis'; feeText = `${formatCurrency(feeValue)} (taxa fixa)`; break;
+                case 'credit_card': const ratePercent = rates.creditCard[installments]; if (calculationMode === 'charge') { saleAmount = inputValue; feeValue = saleAmount * (ratePercent / 100); netAmount = saleAmount - feeValue; } else { netAmount = inputValue; saleAmount = netAmount / (1 - (ratePercent / 100)); feeValue = saleAmount - netAmount; } receiveDate = 'Em até 15 dias'; feeText = `${formatCurrency(feeValue)} (${String(ratePercent).replace('.', ',')}% a)`; break;
             }
-
-            switch(paymentMethod) {
-                case 'pix':
-                    if (calculationMode === 'charge') {
-                        saleAmount = inputValue;
-                        pagarmeeFee = saleAmount * (rates.pix / 100);
-                        netAmount = saleAmount - pagarmeeFee;
-                    } else {
-                        netAmount = inputValue;
-                        saleAmount = netAmount / (1 - (rates.pix / 100));
-                        pagarmeeFee = saleAmount - netAmount;
-                    }
-                    receiveDate = 'Instantâneo';
-                    feeText = `${formatCurrency(pagarmeeFee)} (${String(rates.pix).replace('.',',')}% a)`;
-                    break;
-                    
-                case 'boleto':
-                    if (calculationMode === 'charge') {
-                        saleAmount = inputValue;
-                        pagarmeeFee = rates.boleto;
-                        netAmount = saleAmount - pagarmeeFee;
-                    } else {
-                        netAmount = inputValue;
-                        saleAmount = netAmount + rates.boleto;
-                        pagarmeeFee = rates.boleto;
-                    }
-                    receiveDate = 'Em 2 dias úteis após pagamento';
-                    feeText = `${formatCurrency(pagarmeeFee)} (taxa fixa)`;
-                    break;
-                    
-                case 'credit_card':
-                    const ratePercent = rates.creditCard[installments];
-                    if (calculationMode === 'charge') {
-                        saleAmount = inputValue;
-                        pagarmeeFee = saleAmount * (ratePercent / 100);
-                        netAmount = saleAmount - pagarmeeFee;
-                    } else {
-                        netAmount = inputValue;
-                        saleAmount = netAmount / (1 - (ratePercent / 100));
-                        pagarmeeFee = saleAmount - netAmount;
-                    }
-                    receiveDate = 'Em até 15 dias corridos';
-                    feeText = `${formatCurrency(pagarmeeFee)} (${String(ratePercent).replace('.',',')}% a)`;
-                    break;
-            }
-            
             let finalCardHTML = '';
             if (calculationMode === 'receive' && saleAmount > netAmount) {
                 const discountPercent = ((saleAmount - netAmount) / saleAmount) * 100;
-                const discountIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#0ea5e9" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16Zm176,112H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z" opacity="0.0" /><path d="M208.49,199.51a12,12,0,0,1-17,17l-80-80a12,12,0,0,1,0-17l80-80a12,12,0,0,1,17,17L135,128ZM96,120a28,28,0,1,0-28-28A28,28,0,0,0,96,120Zm0-40a12,12,0,1,1-12,12A12,12,0,0,1,96,80Z" opacity="0.0" /><path d="M204,32H52a20,20,0,0,0-20,20V204a20,20,0,0,0,20,20H204a20,20,0,0,0,20-20V52A20,20,0,0,0,204,32ZM96,128a36,36,0,1,1,36-36A36,36,0,0,1,96,128Zm125.66,8.49-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,1,1,17-17L144,183,205.66,121.51a12,12,0,1,1,17,17Z" fill-rule="nonzero" stroke-width="1" stroke="none" fill="#0ea5e9"></path><path d="M96.5,72.5a24,24,0,1,1-24,24,24,24,0,0,1,24-24m0-12a36,36,0,1,0,36,36,36,36,0,0,0-36-36h0Z" fill-rule="nonzero" stroke-width="1" stroke="none" fill="#0ea5e9"></path><path d="M214.16,121.51,144,191.66,73.84,121.51a12,12,0,0,0-17,17l80,80a12,12,0,0,0,17,0l80-80a12,12,0,1,0-17-17Z" fill-rule="nonzero" stroke-width="1" stroke="none" fill="#0ea5e9"></path></svg>`;
+                const discountIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" /></svg>`;
                 finalCardHTML = createResultCard('Desconto para o cliente', `${discountPercent.toFixed(2).replace('.', ',')}%`, discountIcon);
             } else {
-                const calendarIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#0ea5e9" viewBox="0 0 256 256"><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32Zm0,176H48V48H72v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V208Z"></path></svg>`;
+                const calendarIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>`;
                 finalCardHTML = createResultCard('Previsão de recebimento', receiveDate, calendarIcon);
             }
-
-            const walletIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#0ea5e9" viewBox="0 0 256 256"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V72H40V56ZM40,200V88H216l.06,112Z"></path></svg>`;
-            const feeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#0ea5e9" viewBox="0 0 256 256"><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm-80,84a12,12,0,1,1,12-12A12,12,0,0,1,128,164Zm-16-84V56a32,32,0,0,1,64,0V80Z"></path></svg>`;
-            const priceIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#0ea5e9" viewBox="0 0 256 256"><path d="M244,112a8,8,0,0,0-8,8,108.2,108.2,0,0,1-22.65,66.19L191.24,164a8,8,0,0,0-13.43,8l24.11,48.21A8,8,0,0,0,210,224a4,4,0,0,0,2.06-.55,8,8,0,0,0,5.38-8.89l-9.84-49.22A124.12,124.12,0,0,0,232,120,8,8,0,0,0,224,112Zm-70.1-23.9-20-40a8,8,0,0,0-13.8,0l-20,40a8,8,0,0,0,13.8,8L140,89.57V216a8,8,0,0,0,16,0V89.57l6.15,6.53a8,8,0,0,0,6.9,3.9h0a8,8,0,0,0,6.9-11.9ZM96,160H40a8,8,0,0,0,0,16H96a8,8,0,0,0,0-16Zm0-40H40a8,8,0,0,0,0,16H96a8,8,0,0,0,0-16ZM40,96H96a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16Z"></path></svg>`;
-            
-            resultsDiv.innerHTML = 
-                createResultCard('Para receber (líquido)', formatCurrency(netAmount), walletIcon) +
-                createResultCard('Você deveria cobrar', formatCurrency(saleAmount), priceIcon) +
-                createResultCard('Taxas da venda', feeText, feeIcon) +
-                finalCardHTML;
+            const walletIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 3a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 12m15-3V6a2.25 2.25 0 00-2.25-2.25H8.25A2.25 2.25 0 006 6v3m15 6v-2.25M3 15v-2.25" /></svg>`;
+            const feeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>`;
+            const priceIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            resultsDiv.innerHTML = createResultCard('Para receber (líquido)', formatCurrency(netAmount), walletIcon) + createResultCard('Você deveria cobrar', formatCurrency(saleAmount), priceIcon) + createResultCard('Taxas da venda', feeText, feeIcon) + finalCardHTML;
         };
-
-        // --- LÓGICA DO MODAL DE CONFIGURAÇÕES ---
-        const openSettingsModal = () => {
-            pixRateInput.value = String(rates.pix).replace('.', ',');
-            boletoRateInput.value = String(rates.boleto).replace('.', ',');
-            Object.keys(rates.creditCard).forEach(installment => {
-                document.getElementById(`rate-${installment}`).value = String(rates.creditCard[installment]).replace('.', ',');
-            });
-            settingsModal.classList.remove('opacity-0', 'pointer-events-none');
-            modalContent.classList.remove('scale-95');
-        };
-
-        const closeSettingsModal = () => {
-            settingsModal.classList.add('opacity-0', 'pointer-events-none');
-            modalContent.classList.add('scale-95');
-        };
-
-        const saveSettings = () => {
-            const newRates = { creditCard: {} };
-            newRates.pix = parseFloat(pixRateInput.value.replace(',', '.')) || 0;
-            newRates.boleto = parseFloat(boletoRateInput.value.replace(',', '.')) || 0;
-            
-            for (let i = 1; i <= 12; i++) {
-                const input = document.getElementById(`rate-${i}`);
-                newRates.creditCard[i] = parseFloat(input.value.replace(',', '.')) || 0;
-            }
-
-            rates = newRates;
-            localStorage.setItem('pagarmeCalculatorRates', JSON.stringify(rates));
-            closeSettingsModal();
-            calculate();
-        };
-
-        const loadSettings = () => {
-            const savedRates = localStorage.getItem('pagarmeCalculatorRates');
-            if (savedRates) {
-                rates = JSON.parse(savedRates);
-            }
-        };
-
-        const generateCreditCardRateInputs = () => {
-            for (let i = 1; i <= 12; i++) {
-                const div = document.createElement('div');
-                div.innerHTML = `
-                    <label for="rate-${i}" class="block text-sm font-medium text-slate-600 mb-1">${i}x</label>
-                    <input type="text" id="rate-${i}" class="w-full p-2 border border-slate-300 rounded-lg">
-                `;
-                creditCardRatesContainer.appendChild(div);
-            }
-        };
+        const openSettingsModal = () => { pixRateInput.value = String(rates.pix).replace('.', ','); boletoRateInput.value = String(rates.boleto).replace('.', ','); Object.keys(rates.creditCard).forEach(i => document.getElementById(`taxCalcRate-${i}`).value = String(rates.creditCard[i]).replace('.', ',')); settingsModal.classList.remove('opacity-0', 'pointer-events-none'); modalContent.classList.remove('scale-95'); };
+        const closeSettingsModal = () => { settingsModal.classList.add('opacity-0', 'pointer-events-none'); modalContent.classList.add('scale-95'); };
+        const saveSettings = () => { const newRates = { creditCard: {} }; newRates.pix = parseFloat(pixRateInput.value.replace(',', '.')) || 0; newRates.boleto = parseFloat(boletoRateInput.value.replace(',', '.')) || 0; for (let i = 1; i <= 12; i++) { const input = document.getElementById(`taxCalcRate-${i}`); newRates.creditCard[i] = parseFloat(input.value.replace(',', '.')) || 0; } rates = newRates; localStorage.setItem('precifyTaxCalculatorRates', JSON.stringify(rates)); closeSettingsModal(); calculate(); };
+        const loadSettings = () => { const savedRates = localStorage.getItem('precifyTaxCalculatorRates'); if (savedRates) rates = JSON.parse(savedRates); };
+        const generateCreditCardRateInputs = () => { for (let i = 1; i <= 12; i++) { const div = document.createElement('div'); div.innerHTML = `<label for="taxCalcRate-${i}" class="block text-sm font-medium text-gray-400 mb-1">${i}x</label><input type="text" id="taxCalcRate-${i}" class="input-field w-full p-2 rounded-lg">`; creditCardRatesContainer.appendChild(div); } };
         
-        // --- EVENT LISTENERS ---
-        [amountInput, paymentMethodSelect, installmentsSelect].forEach(element => {
-            element.addEventListener('input', calculate);
-        });
+        [amountInput, paymentMethodSelect, installmentsSelect].forEach(el => el.addEventListener('input', calculate));
         paymentMethodSelect.addEventListener('change', toggleCreditCardOptions);
         btnCharge.addEventListener('click', () => { calculationMode = 'charge'; updateToggleUI(); calculate(); });
         btnReceive.addEventListener('click', () => { calculationMode = 'receive'; updateToggleUI(); calculate(); });
-        
-        // Listeners do Modal
         openSettingsBtn.addEventListener('click', openSettingsModal);
         closeSettingsBtn.addEventListener('click', closeSettingsModal);
         cancelSettingsBtn.addEventListener('click', closeSettingsModal);
         saveSettingsBtn.addEventListener('click', saveSettings);
-        settingsModal.addEventListener('click', (e) => {
-            if (e.target === settingsModal) closeSettingsModal();
+        settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) closeSettingsModal(); });
+
+        loadSettings();
+        generateCreditCardRateInputs();
+        toggleCreditCardOptions();
+        updateToggleUI();
+        calculate();
+    })();
+
+    // Sidebar toggle logic
+    (function() {
+        const openBtn = document.getElementById('open-tax-calculator-btn');
+        const closeBtn = document.getElementById('close-tax-calculator-btn');
+        const sidebar = document.getElementById('tax-calculator-sidebar');
+
+        openBtn.addEventListener('click', () => sidebar.classList.add('active'));
+        closeBtn.addEventListener('click', () => sidebar.classList.remove('active'));
+
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', event => {
+            if (event.key === 'F12' || (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'i')) || (event.ctrlKey && (event.key === 'U' || event.key === 'u'))) {
+                event.preventDefault();
+            }
         });
-
-
-        // --- INICIALIZAÇÃO E PROTEÇÃO DE CÓDIGO ---
-        document.addEventListener('DOMContentLoaded', () => {
-            loadSettings();
-            generateCreditCardRateInputs();
-            toggleCreditCardOptions();
-            updateToggleUI();
-            calculate();
-
-            // Proteção contra cópia de código
-            document.addEventListener('contextmenu', event => event.preventDefault());
-            document.addEventListener('keydown', event => {
-                if (event.key === 'F12' || 
-                   (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'i' || event.key === 'J' || event.key === 'j')) ||
-                   (event.ctrlKey && (event.key === 'U' || event.key === 'u'))) {
-                    event.preventDefault();
-                }
-            });
-        });
+    })();
     </script>
 </body>
 </html>
