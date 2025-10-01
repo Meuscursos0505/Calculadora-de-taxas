@@ -80,7 +80,9 @@
                 <details>
                     <summary class="font-semibold text-lg">Custos Adicionais</summary>
                     <div id="additional-costs-container" class="pt-4 space-y-3 pl-2"></div>
-                    <div class="pl-2 mt-2"><button id="add-cost-btn" class="text-sm text-accent-green hover:text-accent-green-dark w-full text-left">+ Adicionar Custo</button></div>
+                    <div class="pl-2 mt-2">
+                        <button id="add-cost-btn" class="text-sm text-accent-green hover:text-accent-green-dark w-full text-left">+ Adicionar Custo</button>
+                    </div>
                 </details>
 
                 <details open>
@@ -95,7 +97,7 @@
                     </div>
                 </details>
                 
-                <details open>
+                 <details open>
                     <summary class="font-semibold text-lg">Configurações</summary>
                       <div class="pt-4 space-y-4 pl-2">
                           <div><label for="mlReputation" class="block text-sm font-medium text-gray-300">Reputação Mercado Livre</label>
@@ -154,9 +156,243 @@
     <script>
     // IIFE to encapsulate Marketplace Calculator logic
     (function() {
-        // ... (Marketplace JS code omitted for brevity, it remains unchanged) ...
-        const officialMarketplaceData = { mercadoLivreClassico: { name: "Mercado Livre (Clássico)", group: "Mercado Livre", commission: 0.12, categories: { "Supermercado": 0.125, "Beleza e Cuidado Pessoal": 0.13, "Calçados, Roupas e Bolsas": 0.13, "Eletrônicos, Áudio e Vídeo": 0.115, "Celulares e Telefones": 0.115, "Acessórios para Veículos": 0.115, "Eletrodomésticos": 0.105, "Agro": 0.095, "Livros": 0.09 }, note: "Comissão exata por categoria. Frete calculado pela regra oficial." }, mercadoLivrePremium: { name: "Mercado Livre (Premium)", group: "Mercado Livre", commission: 0.17, categories: { "Supermercado": 0.175, "Beleza e Cuidado Pessoal": 0.18, "Calçados, Roupas e Bolsas": 0.18, "Eletrônicos, Áudio e Vídeo": 0.165, "Celulares e Telefones": 0.165, "Acessórios para Veículos": 0.165, "Eletrodomésticos": 0.155, "Agro": 0.145, "Livros": 0.14 }, note: "Comissão exata por categoria. Frete calculado pela regra oficial." }, shopeePadrao: { name: "Shopee (Padrão)", group: "Shopee", commission: 0.14, transactionFee: 0.02, note: "Comissão de 14% (teto R$100) + 2% de transação." }, shopeeFreteGratis: { name: "Shopee (Frete Grátis)", group: "Shopee", commission: 0.20, transactionFee: 0.02, fixedFee: () => 3.00, note: "Comissão de 20% (teto R$100) + 2% de transação + R$3 por item." }, amazon: { name: "Amazon", group: "Amazon", commission: 0.15, categories: { "Dispositivos Amazon": 0.20, "Computadores": 0.13, "Eletrônicos, Áudio e Vídeo": 0.13, "Videogames e Consoles": 0.14, "Celulares e Telefones": 0.11, "Calçados, Roupas e Bolsas": 0.16, "Beleza e Cuidado Pessoal": 0.15, "Casa, Cozinha e Ferramentas": 0.14, "Livros": 0.15, "Esportes e Aventura": 0.15, "Brinquedos e Jogos": 0.15 }, calculateCommission: (p, r) => Math.max(1.00, p * r), note: "Comissão por categoria. Mínimo R$1. Assume Plano Profissional." }, magalu: { name: "Magazine Luiza", group: "Magalu", commission: 0.20, fixedFee: () => 5.00, note: "Comissão de até 20% e taxa fixa de R$5 por item." }, americanas: { name: "Americanas", group: "Americanas", commission: 0.19, categories: { "Calçados, Roupas e Bolsas": 0.19, "Beleza e Cuidado Pessoal": 0.19, "Livros": 0.18, "Celulares e Telefones": 0.17, "Computadores": 0.17, "Eletrônicos, Áudio e Vídeo": 0.17, "Eletrodomésticos": 0.16, "Brinquedos e Jogos": 0.19, "Casa, Cozinha e Ferramentas": 0.19 }, fixedFee: () => 5.00, note: "Comissão por categoria e taxa fixa de R$5 por item." }, shein: { name: "Shein", group: "Shein", commission: 0.16, getShippingBrokerageFee: (weight) => { if (weight <= 0.3) return 4.00; if (weight <= 2) return 5.00; if (weight <= 5) return 15.00; if (weight <= 9) return 32.00; return 32.00; }, note: "Comissão de 16% + Taxa de Corretagem de Frete por peso." }, tiktokShop: { name: "TikTok Shop", group: "TikTok Shop", commission: 0.06, shippingFeeRate: 0.06, fixedFee: (p) => p < 79 ? 2.00 : 0, note: "Comissão 6% + Taxa de Envio 6% + taxa fixa R$2 (se < R$79)." } }; const unifiedCategories = [ "Demais categorias", "Calçados, Roupas e Bolsas", "Beleza e Cuidado Pessoal", "Eletrônicos, Áudio e Vídeo", "Celulares e Telefones", "Computadores", "Videogames e Consoles", "Acessórios para Veículos", "Casa, Cozinha e Ferramentas", "Eletrodomésticos", "Esportes e Aventura", "Brinquedos e Jogos", "Supermercado", "Livros", "Agro", "Dispositivos Amazon" ]; const sidebar = document.getElementById('sidebar'); const marketplacesList = document.getElementById('marketplaces-list'); const categorySelect = document.getElementById('categorySelect'); const resultsGrid = document.getElementById('results-grid'); const placeholder = document.getElementById('placeholder'); const profitValueSpan = document.getElementById('profit-value'); const addCostBtn = document.getElementById('add-cost-btn'); const additionalCostsContainer = document.getElementById('additional-costs-container'); const formatCurrency = (value) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); const toPercent = (value, total) => total > 0 ? `${(value / total * 100).toFixed(1)}%` : '0.0%'; function getMlShippingCost(weight, price, reputation) { return 20; } function addCostRow() { const rowId = `cost-row-${Date.now()}`; const row = document.createElement('div'); row.id = rowId; row.className = 'flex items-center gap-2'; row.innerHTML = `<input type="text" placeholder="Descrição" class="input-field rounded-md p-2 w-1/2 cost-desc"><input type="number" placeholder="Valor" value="5" class="input-field rounded-md p-2 w-1/4 cost-value"><select class="select-field rounded-md p-2 w-1/4 cost-type"><option value="rs">R$</option><option value="percent">%</option></select><button class="text-red-500 hover:text-red-400 remove-cost-btn" data-rowid="${rowId}">&times;</button>`; additionalCostsContainer.appendChild(row); row.querySelector('.remove-cost-btn').addEventListener('click', () => row.remove()); } function populateUI() { categorySelect.innerHTML = unifiedCategories.map(cat => `<option value="${cat}">${cat}</option>`).join(''); const grouped = Object.entries(officialMarketplaceData).reduce((acc, [key, mkt]) => { if (!acc[mkt.group]) acc[mkt.group] = []; acc[mkt.group].push({ key, ...mkt }); return acc; }, {}); let html = ''; for (const groupName in grouped) { html += `<div class="space-y-2"><p class="font-medium text-white">${groupName}</p>`; grouped[groupName].forEach(mkt => { html += `<label class="flex items-center text-gray-300 font-normal"><input type="checkbox" name="marketplace" value="${mkt.key}" class="h-4 w-4 rounded border-gray-500 mr-3"><span>${mkt.name.replace(`(${mkt.group})`, '').trim()}</span></label>`; }); html += `</div>`; } marketplacesList.innerHTML = html; addCostRow(); } function calculateAndRender() { const productCost = parseFloat(document.getElementById('productCost').value) || 0; let totalFixedOtherCosts = 0, totalPercentageOtherCosts = 0; document.querySelectorAll('#additional-costs-container > div').forEach(row => { const value = parseFloat(row.querySelector('.cost-value').value) || 0; const type = row.querySelector('.cost-type').value; if (type === 'rs') totalFixedOtherCosts += value; else totalPercentageOtherCosts += value / 100; }); const productWeight = parseFloat(document.getElementById('productWeight').value) || 0; const selectedCategory = categorySelect.value; const taxRate = parseFloat(document.getElementById('taxRate').value) / 100 || 0; const manualShippingCost = parseFloat(document.getElementById('shippingCost').value) || 0; const profitMargin = parseFloat(document.getElementById('profitMargin').value) / 100 || 0; const mlReputation = document.getElementById('mlReputation').value; profitValueSpan.textContent = `${(profitMargin * 100).toFixed(0)}%`; const selectedMkts = Array.from(document.querySelectorAll('input[name="marketplace"]:checked')).map(cb => cb.value); resultsGrid.innerHTML = ''; if (selectedMkts.length === 0) { resultsGrid.appendChild(placeholder); placeholder.style.display = 'block'; return; } placeholder.style.display = 'none'; selectedMkts.forEach(mktKey => { const mkt = officialMarketplaceData[mktKey]; const commissionRate = (mkt.categories && mkt.categories[selectedCategory]) || mkt.commission; let sellingPrice; const baseCosts = productCost + totalFixedOtherCosts; let shippingCostForCalc = mkt.getShippingBrokerageFee ? mkt.getShippingBrokerageFee(productWeight) : manualShippingCost; let fixedFee = mkt.fixedFee ? mkt.fixedFee(0) : 0; let denominator = 1 - commissionRate - taxRate - profitMargin - (mkt.transactionFee || 0) - (mkt.shippingFeeRate || 0) - totalPercentageOtherCosts; if (denominator <= 0) { resultsGrid.innerHTML += generateErrorCard(mkt); return; } sellingPrice = (baseCosts + shippingCostForCalc + fixedFee) / denominator; fixedFee = mkt.fixedFee ? mkt.fixedFee(sellingPrice) : 0; sellingPrice = (baseCosts + shippingCostForCalc + fixedFee) / denominator; let commissionValue = mkt.calculateCommission ? mkt.calculateCommission(sellingPrice, commissionRate) : sellingPrice * commissionRate; if (mktKey.includes('shopee')) commissionValue = Math.min(commissionValue, 100); const transactionFeeValue = sellingPrice * (mkt.transactionFee || 0); const shippingFeeValue = sellingPrice * (mkt.shippingFeeRate || 0); const taxValue = sellingPrice * taxRate; const profitValue = sellingPrice * profitMargin; const additionalCostsCalculated = Array.from(document.querySelectorAll('#additional-costs-container > div')).map(row => ({ desc: row.querySelector('.cost-desc').value || 'Custo Adicional', value: row.querySelector('.cost-type').value === 'rs' ? parseFloat(row.querySelector('.cost-value').value) || 0 : sellingPrice * (parseFloat(row.querySelector('.cost-value').value) / 100 || 0) })); const totalAdditionalCostsValue = additionalCostsCalculated.reduce((sum, cost) => sum + cost.value, 0); const totalFees = commissionValue + transactionFeeValue + fixedFee + shippingFeeValue; const totalCosts = productCost + totalAdditionalCostsValue + shippingCostForCalc + taxValue + totalFees; resultsGrid.innerHTML += generateResultCard({ ...mkt, sellingPrice, profitValue, breakdown: { productCost, additionalCosts: additionalCostsCalculated, shippingCost: shippingCostForCalc, commissionValue, transactionFeeValue, fixedFee, shippingFeeValue, taxValue, totalFees, totalCosts } }); }); document.querySelectorAll('[data-toggle="details"]').forEach(button => button.addEventListener('click', (e) => document.getElementById(e.currentTarget.getAttribute('data-target')).classList.toggle('hidden'))); } function generateErrorCard(mkt) { return `<div class="card rounded-lg p-5 flex flex-col border-red-500/50"><h3 class="font-bold text-xl text-white">${mkt.name}</h3><div class="flex-grow flex items-center justify-center"><p class="text-center text-red-400">Cálculo impossível.<br>Taxas + Lucro excedem 100%.</p></div></div>`; } function generateResultCard(data) { const { name, note, sellingPrice, profitValue, breakdown } = data; const detailsId = `details-${name.replace(/[^a-zA-Z0-9]/g, '')}`; let additionalCostsHtml = breakdown.additionalCosts.map(cost => `<div class="flex justify-between items-baseline"><span class="text-gray-400">${cost.desc}</span><span class="text-right">${formatCurrency(cost.value)} <br><span class="text-gray-500 text-xs">${toPercent(cost.value, sellingPrice)}</span></span></div>`).join(''); return `<div class="card rounded-lg p-5 flex flex-col"><h3 class="font-bold text-xl text-white">${name}</h3><p class="text-sm text-gray-400 mb-4 h-10">${note}</p><div class="my-4 space-y-4 text-center"><div><p class="text-sm text-gray-400">Preço de Venda</p><p class="text-4xl font-bold text-accent-green">${formatCurrency(sellingPrice)}</p></div><div><p class="text-sm text-gray-400">Lucro</p><p class="text-2xl font-semibold text-white">${formatCurrency(profitValue)}</p></div></div><div class="mt-auto pt-4 border-t border-gray-700"><button data-toggle="details" data-target="${detailsId}" class="text-sm text-accent-green hover:text-accent-green-dark w-full text-center">Ver detalhes</button><div id="${detailsId}" class="hidden mt-4 text-sm space-y-2"><div class="flex justify-between items-baseline"><span class="text-gray-400">Custo do Produto</span><span class="text-right">${formatCurrency(breakdown.productCost)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.productCost, sellingPrice)}</span></span></div>${additionalCostsHtml}<div class="flex justify-between items-baseline"><span class="text-gray-400">Frete (Custo)</span><span class="text-right">${formatCurrency(breakdown.shippingCost)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.shippingCost, sellingPrice)}</span></span></div><hr class="border-gray-700 my-1"><div class="flex justify-between items-baseline"><span class="text-gray-400">Comissão Mkt</span><span class="text-right">${formatCurrency(breakdown.commissionValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.commissionValue, sellingPrice)}</span></span></div>${breakdown.transactionFeeValue > 0 ? `<div class="flex justify-between items-baseline"><span class="text-gray-400">Taxa de Transação</span><span class="text-right">${formatCurrency(breakdown.transactionFeeValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.transactionFeeValue, sellingPrice)}</span></span></div>` : ''}${breakdown.shippingFeeValue > 0 ? `<div class="flex justify-between items-baseline"><span class="text-gray-400">Taxa de Envio</span><span class="text-right">${formatCurrency(breakdown.shippingFeeValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.shippingFeeValue, sellingPrice)}</span></span></div>` : ''}${breakdown.fixedFee > 0 ? `<div class="flex justify-between items-baseline"><span class="text-gray-400">Taxa Fixa</span><span class="text-right">${formatCurrency(breakdown.fixedFee)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.fixedFee, sellingPrice)}</span></span></div>` : ''}<div class="flex justify-between items-baseline"><span class="text-gray-400">Impostos</span><span class="text-right">${formatCurrency(breakdown.taxValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.taxValue, sellingPrice)}</span></span></div><hr class="border-gray-700 my-1"><div class="flex justify-between items-baseline font-bold"><span class="text-gray-300">Total de Custos</span><span class="text-right">${formatCurrency(breakdown.totalCosts)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.totalCosts, sellingPrice)}</span></span></div></div></div></div>`; }
-        document.addEventListener('DOMContentLoaded', () => { populateUI(); sidebar.addEventListener('input', calculateAndRender); addCostBtn.addEventListener('click', addCostRow); calculateAndRender(); });
+        const officialMarketplaceData = {
+            mercadoLivreClassico: { name: "Mercado Livre (Clássico)", group: "Mercado Livre", commission: 0.12, categories: { "Supermercado": 0.125, "Beleza e Cuidado Pessoal": 0.13, "Calçados, Roupas e Bolsas": 0.13, "Eletrônicos, Áudio e Vídeo": 0.115, "Celulares e Telefones": 0.115, "Acessórios para Veículos": 0.115, "Eletrodomésticos": 0.105, "Agro": 0.095, "Livros": 0.09 }, note: "Comissão exata por categoria. Frete calculado pela regra oficial." },
+            mercadoLivrePremium: { name: "Mercado Livre (Premium)", group: "Mercado Livre", commission: 0.17, categories: { "Supermercado": 0.175, "Beleza e Cuidado Pessoal": 0.18, "Calçados, Roupas e Bolsas": 0.18, "Eletrônicos, Áudio e Vídeo": 0.165, "Celulares e Telefones": 0.165, "Acessórios para Veículos": 0.165, "Eletrodomésticos": 0.155, "Agro": 0.145, "Livros": 0.14 }, note: "Comissão exata por categoria. Frete calculado pela regra oficial." },
+            shopeePadrao: { name: "Shopee (Padrão)", group: "Shopee", commission: 0.14, transactionFee: 0.02, note: "Comissão de 14% (teto R$100) + 2% de transação." },
+            shopeeFreteGratis: { name: "Shopee (Frete Grátis)", group: "Shopee", commission: 0.20, transactionFee: 0.02, fixedFee: () => 3.00, note: "Comissão de 20% (teto R$100) + 2% de transação + R$3 por item." },
+            amazon: { name: "Amazon", group: "Amazon", commission: 0.15, categories: { "Dispositivos Amazon": 0.20, "Computadores": 0.13, "Eletrônicos, Áudio e Vídeo": 0.13, "Videogames e Consoles": 0.14, "Celulares e Telefones": 0.11, "Calçados, Roupas e Bolsas": 0.16, "Beleza e Cuidado Pessoal": 0.15, "Casa, Cozinha e Ferramentas": 0.14, "Livros": 0.15, "Esportes e Aventura": 0.15, "Brinquedos e Jogos": 0.15 }, calculateCommission: (p, r) => Math.max(1.00, p * r), note: "Comissão por categoria. Mínimo R$1. Assume Plano Profissional." },
+            magalu: { name: "Magazine Luiza", group: "Magalu", commission: 0.20, fixedFee: () => 5.00, note: "Comissão de até 20% e taxa fixa de R$5 por item." },
+            americanas: { name: "Americanas", group: "Americanas", commission: 0.19, categories: { "Calçados, Roupas e Bolsas": 0.19, "Beleza e Cuidado Pessoal": 0.19, "Livros": 0.18, "Celulares e Telefones": 0.17, "Computadores": 0.17, "Eletrônicos, Áudio e Vídeo": 0.17, "Eletrodomésticos": 0.16, "Brinquedos e Jogos": 0.19, "Casa, Cozinha e Ferramentas": 0.19 }, fixedFee: () => 5.00, note: "Comissão por categoria e taxa fixa de R$5 por item." },
+            shein: { name: "Shein", group: "Shein", commission: 0.16, getShippingBrokerageFee: (weight) => { if (weight <= 0.3) return 4.00; if (weight <= 2) return 5.00; if (weight <= 5) return 15.00; if (weight <= 9) return 32.00; return 32.00; }, note: "Comissão de 16% + Taxa de Corretagem de Frete por peso." },
+            tiktokShop: { name: "TikTok Shop", group: "TikTok Shop", commission: 0.06, shippingFeeRate: 0.06, fixedFee: (p) => p < 79 ? 2.00 : 0, note: "Comissão 6% + Taxa de Envio 6% + taxa fixa R$2 (se < R$79)." }
+        };
+        const unifiedCategories = [ "Demais categorias", "Calçados, Roupas e Bolsas", "Beleza e Cuidado Pessoal", "Eletrônicos, Áudio e Vídeo", "Celulares e Telefones", "Computadores", "Videogames e Consoles", "Acessórios para Veículos", "Casa, Cozinha e Ferramentas", "Eletrodomésticos", "Esportes e Aventura", "Brinquedos e Jogos", "Supermercado", "Livros", "Agro", "Dispositivos Amazon" ];
+
+        const sidebar = document.getElementById('sidebar');
+        const marketplacesList = document.getElementById('marketplaces-list');
+        const categorySelect = document.getElementById('categorySelect');
+        const resultsGrid = document.getElementById('results-grid');
+        const placeholder = document.getElementById('placeholder');
+        const profitValueSpan = document.getElementById('profit-value');
+        const addCostBtn = document.getElementById('add-cost-btn');
+        const additionalCostsContainer = document.getElementById('additional-costs-container');
+
+        const formatCurrency = (value) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const toPercent = (value, total) => total > 0 ? `${(value / total * 100).toFixed(1)}%` : '0.0%';
+        
+        const mlShippingCosts = {
+            verde: { '99.99': { 0.3: 11.97, 0.5: 12.87, 1: 13.47, 2: 14.07, 3: 14.97, 4: 16.17, 5: 17.07, 9: 26.67, 13: 39.57, 17: 44.07, 23: 51.57, 30: 59.37, 40: 61.17, 50: 63.27, 60: 67.47, 70: 72.27, 80: 75.57, 90: 83.97, 100: 95.97, 125: 107.37, 150: 113.97, Infinity: 149.67 }, '119.99': { 0.3: 13.97, 0.5: 15.02, 1: 15.72, 2: 16.42, 3: 17.47, 4: 18.87, 5: 19.92, 9: 31.12, 13: 46.17, 17: 51.42, 23: 60.17, 30: 69.27, 40: 71.37, 50: 73.82, 60: 78.72, 70: 84.32, 80: 88.17, 90: 97.97, 100: 111.97, 125: 125.27, 150: 132.97, Infinity: 174.62 }, '149.99': { 0.3: 15.96, 0.5: 17.16, 1: 17.96, 2: 18.76, 3: 19.96, 4: 21.56, 5: 22.76, 9: 35.56, 13: 52.76, 17: 58.76, 23: 68.76, 30: 79.16, 40: 81.56, 50: 84.36, 60: 89.96, 70: 96.36, 80: 100.76, 90: 111.96, 100: 127.96, 125: 143.16, 150: 151.96, Infinity: 199.56 }, '199.99': { 0.3: 17.96, 0.5: 19.31, 1: 20.21, 2: 21.11, 3: 22.46, 4: 24.26, 5: 25.61, 9: 40.01, 13: 59.36, 17: 66.11, 23: 77.36, 30: 89.06, 40: 91.76, 50: 94.91, 60: 101.21, 70: 108.41, 80: 113.36, 90: 125.96, 100: 143.96, 125: 161.06, 150: 170.96, Infinity: 224.51 }, 'Infinity': { 0.3: 19.95, 0.5: 21.45, 1: 22.45, 2: 23.45, 3: 24.95, 4: 26.95, 5: 28.45, 9: 44.45, 13: 65.95, 17: 73.45, 23: 85.95, 30: 98.95, 40: 101.95, 50: 105.45, 60: 112.45, 70: 120.45, 80: 125.95, 90: 139.95, 100: 159.95, 125: 178.95, 150: 189.95, Infinity: 249.45 } },
+            amarela: { '99.99': { 0.3: 15.96, 0.5: 17.16, 1: 17.96, 2: 18.76, 3: 19.96, 4: 21.56, 5: 22.76, 9: 35.56, 13: 52.76, 17: 58.76, 23: 68.76, 30: 79.16, 40: 81.56, 50: 84.36, 60: 89.96, 70: 96.36, 80: 100.76, 90: 111.96, 100: 127.96, 125: 143.16, 150: 151.96, Infinity: 199.56 }, '119.99': { 0.3: 17.96, 0.5: 19.31, 1: 20.21, 2: 21.11, 3: 22.46, 4: 24.26, 5: 25.61, 9: 40.01, 13: 59.36, 17: 66.11, 23: 77.36, 30: 89.06, 40: 91.76, 50: 94.91, 60: 101.21, 70: 108.41, 80: 113.36, 90: 125.96, 100: 143.96, 125: 161.06, 150: 170.96, Infinity: 224.51 }, '149.99': { 0.3: 19.95, 0.5: 21.45, 1: 22.45, 2: 23.45, 3: 24.95, 4: 26.95, 5: 28.45, 9: 44.45, 13: 65.95, 17: 73.45, 23: 85.95, 30: 98.95, 40: 101.95, 50: 105.45, 60: 112.45, 70: 120.45, 80: 125.95, 90: 139.95, 100: 159.95, 125: 178.95, 150: 189.95, Infinity: 249.45 }, '199.99': { 0.3: 21.95, 0.5: 23.60, 1: 24.70, 2: 25.80, 3: 27.45, 4: 29.65, 5: 31.30, 9: 48.90, 13: 72.55, 17: 80.80, 23: 94.55, 30: 108.85, 40: 112.15, 50: 116.00, 60: 123.70, 70: 132.50, 80: 138.55, 90: 153.95, 100: 175.95, 125: 196.85, 150: 208.95, Infinity: 274.40 }, 'Infinity': { 0.3: 23.94, 0.5: 25.74, 1: 26.94, 2: 28.14, 3: 29.94, 4: 32.34, 5: 34.14, 9: 53.34, 13: 79.14, 17: 88.14, 23: 103.14, 30: 118.74, 40: 122.34, 50: 126.54, 60: 134.94, 70: 144.54, 80: 151.14, 90: 167.94, 100: 191.94, 125: 214.74, 150: 227.94, Infinity: 299.34 } },
+            laranja: { 'Infinity': { 0.3: 39.9, 0.5: 42.9, 1: 44.9, 2: 46.9, 3: 49.9, 4: 53.9, 5: 56.9, 9: 88.9, 13: 131.9, 17: 146.9, 23: 171.9, 30: 197.9, 40: 203.9, 50: 210.9, 60: 224.9, 70: 240.9, 80: 251.9, 90: 279.9, 100: 319.9, 125: 357.9, 150: 379.9, Infinity: 498.9 } }
+        };
+
+        function getMlShippingCost(weight, price, reputation) {
+            if (price < 79) return 0;
+            const tables = mlShippingCosts[reputation];
+            const priceBrackets = Object.keys(tables).map(parseFloat).sort((a, b) => a - b);
+            let chosenPriceBracket = priceBrackets.find(bracket => price <= bracket) || Infinity;
+            const costTable = tables[chosenPriceBracket];
+            const weightTiers = Object.keys(costTable).map(parseFloat).sort((a, b) => a - b);
+            let chosenWeightTier = weightTiers.find(tier => weight <= tier) || Infinity;
+            return costTable[chosenWeightTier];
+        }
+        
+        function addCostRow() {
+            const rowId = `cost-row-${Date.now()}`;
+            const row = document.createElement('div');
+            row.id = rowId;
+            row.className = 'flex items-center gap-2';
+            row.innerHTML = `<input type="text" placeholder="Descrição" class="input-field rounded-md p-2 w-1/2 cost-desc"><input type="number" placeholder="Valor" value="" class="input-field rounded-md p-2 w-1/4 cost-value"><select class="select-field rounded-md p-2 w-1/4 cost-type"><option value="rs">R$</option><option value="percent">%</option></select><button class="text-red-500 hover:text-red-400 remove-cost-btn" data-rowid="${rowId}">&times;</button>`;
+            additionalCostsContainer.appendChild(row);
+            row.querySelector('.remove-cost-btn').addEventListener('click', (e) => {
+                document.getElementById(e.target.dataset.rowid).remove();
+                calculateAndRender();
+            });
+        }
+
+        function populateUI() {
+            categorySelect.innerHTML = unifiedCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+            const grouped = Object.entries(officialMarketplaceData).reduce((acc, [key, mkt]) => {
+                if (!acc[mkt.group]) acc[mkt.group] = [];
+                acc[mkt.group].push({ key, ...mkt });
+                return acc;
+            }, {});
+            let html = '';
+            for (const groupName in grouped) {
+                html += `<div class="space-y-2"><p class="font-medium text-white">${groupName}</p>`;
+                grouped[groupName].forEach(mkt => {
+                    html += `<label class="flex items-center text-gray-300 font-normal"><input type="checkbox" name="marketplace" value="${mkt.key}" class="h-4 w-4 rounded border-gray-500 mr-3"><span>${mkt.name.replace(`(${mkt.group})`, '').trim()}</span></label>`;
+                });
+                html += `</div>`;
+            }
+            marketplacesList.innerHTML = html;
+            addCostRow(); 
+        }
+
+        function calculateAndRender() {
+            const productCost = parseFloat(document.getElementById('productCost').value) || 0;
+            let totalFixedOtherCosts = 0;
+            let totalPercentageOtherCosts = 0;
+            const additionalCostRows = document.querySelectorAll('#additional-costs-container > div');
+            additionalCostRows.forEach(row => {
+                const value = parseFloat(row.querySelector('.cost-value').value) || 0;
+                const type = row.querySelector('.cost-type').value;
+                if (type === 'rs') {
+                    totalFixedOtherCosts += value;
+                } else {
+                    totalPercentageOtherCosts += value / 100;
+                }
+            });
+
+            const productWeight = parseFloat(document.getElementById('productWeight').value) || 0;
+            const selectedCategory = categorySelect.value;
+            const taxRate = parseFloat(document.getElementById('taxRate').value) / 100 || 0;
+            const manualShippingCost = parseFloat(document.getElementById('shippingCost').value) || 0;
+            const profitMargin = parseFloat(document.getElementById('profitMargin').value) / 100 || 0;
+            const mlReputation = document.getElementById('mlReputation').value;
+            
+            profitValueSpan.textContent = `${(profitMargin * 100).toFixed(0)}%`;
+
+            const selectedMkts = Array.from(document.querySelectorAll('input[name="marketplace"]:checked')).map(cb => cb.value);
+            
+            resultsGrid.innerHTML = '';
+            if (selectedMkts.length === 0) {
+                resultsGrid.appendChild(placeholder);
+                placeholder.style.display = 'block';
+                return;
+            }
+            placeholder.style.display = 'none';
+
+            selectedMkts.forEach(mktKey => {
+                const mkt = officialMarketplaceData[mktKey];
+                const commissionRate = (mkt.categories && mkt.categories[selectedCategory]) || mkt.commission;
+                const transactionFeeRate = mkt.transactionFee || 0;
+                const shippingFeeRate = mkt.shippingFeeRate || 0;
+                
+                let shippingCostForCalc = manualShippingCost;
+                let fixedFee = 0;
+                let isMlSpecialCase = mktKey.includes('mercadoLivre');
+                let isShopeeCase = mktKey.includes('shopee');
+                let isSheinCase = mktKey.includes('shein');
+                let isTikTokCase = mktKey.includes('tiktok');
+
+                let denominator = 1 - commissionRate - taxRate - profitMargin - transactionFeeRate - shippingFeeRate - totalPercentageOtherCosts;
+                if (denominator <= 0 && !isShopeeCase && !isTikTokCase) { 
+                    resultsGrid.innerHTML += generateErrorCard(mkt); return;
+                }
+
+                let sellingPrice;
+                const baseCosts = productCost + totalFixedOtherCosts;
+
+                if (isMlSpecialCase) {
+                    let tempDenominator = 1 - commissionRate - taxRate - profitMargin - totalPercentageOtherCosts;
+                    let initialPriceGuess = (baseCosts + 6) / tempDenominator;
+                    shippingCostForCalc = getMlShippingCost(productWeight, initialPriceGuess, mlReputation);
+                    let stablePrice = (baseCosts + shippingCostForCalc + (initialPriceGuess < 79 ? 6 : 0)) / tempDenominator;
+                    shippingCostForCalc = getMlShippingCost(productWeight, stablePrice, mlReputation);
+                    fixedFee = stablePrice < 79 ? 6.00 : 0;
+                    sellingPrice = (baseCosts + shippingCostForCalc + fixedFee) / tempDenominator;
+                } else {
+                    if (isSheinCase) { shippingCostForCalc = mkt.getShippingBrokerageFee(productWeight); } 
+                    else if (isTikTokCase) { shippingCostForCalc = 0; }
+                    fixedFee = mkt.fixedFee ? mkt.fixedFee(0) : 0;
+                    sellingPrice = (baseCosts + shippingCostForCalc + fixedFee) / denominator;
+                    fixedFee = mkt.fixedFee ? mkt.fixedFee(sellingPrice) : 0;
+                    sellingPrice = (baseCosts + shippingCostForCalc + fixedFee) / denominator;
+                }
+
+                let commissionValue, shippingFeeValue = 0;
+                
+                if(isShopeeCase) { commissionValue = Math.min(sellingPrice * commissionRate, 100); } 
+                else { commissionValue = mkt.calculateCommission ? mkt.calculateCommission(sellingPrice, commissionRate) : sellingPrice * commissionRate; }
+
+                if(isTikTokCase) { shippingFeeValue = sellingPrice * shippingFeeRate; }
+                
+                if((isShopeeCase && commissionValue === 100)) {
+                    const fixedCostsWithCappedFees = baseCosts + shippingCostForCalc + fixedFee + commissionValue;
+                    const newDenominator = 1 - taxRate - profitMargin - transactionFeeRate - totalPercentageOtherCosts;
+                    if (newDenominator <= 0) { resultsGrid.innerHTML += generateErrorCard(mkt); return; }
+                    sellingPrice = fixedCostsWithCappedFees / newDenominator;
+                }
+
+                const transactionFeeValue = sellingPrice * transactionFeeRate;
+                const taxValue = sellingPrice * taxRate;
+                const profitValue = sellingPrice * profitMargin;
+                const additionalCostsCalculated = [];
+                additionalCostRows.forEach(row => {
+                    const desc = row.querySelector('.cost-desc').value || 'Custo Adicional';
+                    const value = parseFloat(row.querySelector('.cost-value').value) || 0;
+                    const type = row.querySelector('.cost-type').value;
+                    additionalCostsCalculated.push({
+                        desc,
+                        value: type === 'rs' ? value : sellingPrice * (value / 100)
+                    });
+                });
+                const totalAdditionalCostsValue = additionalCostsCalculated.reduce((sum, cost) => sum + cost.value, 0);
+
+                const totalFees = commissionValue + transactionFeeValue + fixedFee + shippingFeeValue;
+                const totalCosts = productCost + totalAdditionalCostsValue + shippingCostForCalc + taxValue + totalFees;
+                
+                resultsGrid.innerHTML += generateResultCard({
+                    ...mkt, sellingPrice, profitValue,
+                    breakdown: { productCost, additionalCosts: additionalCostsCalculated, shippingCost: shippingCostForCalc, commissionValue, transactionFeeValue, fixedFee, shippingFeeValue, taxValue, totalFees, totalCosts }
+                });
+            });
+            
+            document.querySelectorAll('[data-toggle="details"]').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const targetId = e.currentTarget.getAttribute('data-target');
+                    document.getElementById(targetId).classList.toggle('hidden');
+                });
+            });
+        }
+        
+        function generateErrorCard(mkt) {
+            return `<div class="card rounded-lg p-5 flex flex-col border-red-500/50"><h3 class="font-bold text-xl text-white">${mkt.name}</h3><div class="flex-grow flex items-center justify-center"><p class="text-center text-red-400">Cálculo impossível.<br>Taxas + Lucro excedem 100%.</p></div></div>`;
+        }
+        
+        function generateResultCard(data) {
+            const { name, note, sellingPrice, profitValue, breakdown } = data;
+            const detailsId = `details-${name.replace(/[^a-zA-Z0-9]/g, '')}`;
+            
+            let additionalCostsHtml = breakdown.additionalCosts.map(cost => 
+                `<div class="flex justify-between items-baseline"><span class="text-gray-400">${cost.desc}</span><span class="text-right">${formatCurrency(cost.value)} <br><span class="text-gray-500 text-xs">${toPercent(cost.value, sellingPrice)}</span></span></div>`
+            ).join('');
+
+            return `
+                <div class="card rounded-lg p-5 flex flex-col">
+                    <h3 class="font-bold text-xl text-white">${name}</h3>
+                    <p class="text-sm text-gray-400 mb-4 h-10">${note}</p>
+                    <div class="my-4 space-y-4 text-center">
+                        <div><p class="text-sm text-gray-400">Preço de Venda</p><p class="text-4xl font-bold text-accent-green">${formatCurrency(sellingPrice)}</p></div>
+                        <div><p class="text-sm text-gray-400">Lucro</p><p class="text-2xl font-semibold text-white">${formatCurrency(profitValue)}</p></div>
+                    </div>
+                    <div class="mt-auto pt-4 border-t border-gray-700">
+                        <button data-toggle="details" data-target="${detailsId}" class="text-sm text-accent-green hover:text-accent-green-dark w-full text-center">Ver detalhes</button>
+                        <div id="${detailsId}" class="hidden mt-4 text-sm space-y-2">
+                            <div class="flex justify-between items-baseline"><span class="text-gray-400">Custo do Produto</span><span class="text-right">${formatCurrency(breakdown.productCost)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.productCost, sellingPrice)}</span></span></div>
+                            ${additionalCostsHtml}
+                            <div class="flex justify-between items-baseline"><span class="text-gray-400">Frete (Custo)</span><span class="text-right">${formatCurrency(breakdown.shippingCost)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.shippingCost, sellingPrice)}</span></span></div>
+                            <hr class="border-gray-700 my-1">
+                            <div class="flex justify-between items-baseline"><span class="text-gray-400">Comissão Mkt</span><span class="text-right">${formatCurrency(breakdown.commissionValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.commissionValue, sellingPrice)}</span></span></div>
+                            ${breakdown.transactionFeeValue > 0 ? `<div class="flex justify-between items-baseline"><span class="text-gray-400">Taxa de Transação</span><span class="text-right">${formatCurrency(breakdown.transactionFeeValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.transactionFeeValue, sellingPrice)}</span></span></div>` : ''}
+                            ${breakdown.shippingFeeValue > 0 ? `<div class="flex justify-between items-baseline"><span class="text-gray-400">Taxa de Envio</span><span class="text-right">${formatCurrency(breakdown.shippingFeeValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.shippingFeeValue, sellingPrice)}</span></span></div>` : ''}
+                            ${breakdown.fixedFee > 0 ? `<div class="flex justify-between items-baseline"><span class="text-gray-400">Taxa Fixa</span><span class="text-right">${formatCurrency(breakdown.fixedFee)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.fixedFee, sellingPrice)}</span></span></div>` : ''}
+                            <div class="flex justify-between items-baseline"><span class="text-gray-400">Impostos</span><span class="text-right">${formatCurrency(breakdown.taxValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.taxValue, sellingPrice)}</span></span></div>
+                            <hr class="border-gray-700 my-1">
+                            <div class="flex justify-between items-baseline font-bold"><span class="text-gray-300">Total de Custos</span><span class="text-right">${formatCurrency(breakdown.totalCosts)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.totalCosts, sellingPrice)}</span></span></div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateUI();
+            sidebar.addEventListener('input', calculateAndRender);
+            addCostBtn.addEventListener('click', addCostRow);
+            calculateAndRender();
+        });
     })();
     
     // IIFE to encapsulate Tax Calculator logic
@@ -177,7 +413,7 @@
                     </div>
                     <div>
                         <label for="taxCalcAmountInput" id="taxCalcAmountLabel" class="block text-sm font-medium text-gray-300 mb-1">Qual o valor da venda?</label>
-                        <div class="relative"><span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">R$</span><input type="text" id="taxCalcAmountInput" class="input-field w-full pl-9 pr-4 py-2 rounded-lg" value="100,00"></div>
+                        <div class="relative"><span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">R$</span><input type="text" id="taxCalcAmountInput" class="input-field w-full pl-9 pr-4 py-2 rounded-lg" value=""></div>
                     </div>
                     <div>
                         <label for="taxCalcPaymentMethod" class="block text-sm font-medium text-gray-300 mb-1">Meio de Pagamento</label>
