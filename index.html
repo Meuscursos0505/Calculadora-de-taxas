@@ -24,11 +24,35 @@
         .input-field, .select-field { background-color: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-light); -webkit-appearance: none; appearance: none; }
         .select-field { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; }
         .input-field:focus, .select-field:focus { border-color: var(--accent-green); outline: none; box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.3); }
-        details > summary { cursor: pointer; }
-        details > summary::marker { color: var(--accent-green); }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: var(--accent-green); border-radius: 50%; cursor: pointer; }
+        
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: var(--accent-green); border-radius: 50%; cursor: pointer; margin-top: -8px; }
         input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; background: var(--accent-green); border-radius: 50%; cursor: pointer; }
+        input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--border-color); border-radius: 2px; }
+        input[type="range"]::-moz-range-track { height: 4px; background: var(--border-color); border-radius: 2px; }
         input[type="checkbox"] { accent-color: var(--accent-green); }
+
+        /* === Accordion Styles (Sidebar & Cards) === */
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        
+        .details-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+        }
+        .details-content.open {
+            max-height: 500px; /* A value larger than the content will ever be */
+            transition: max-height 0.6s ease-in;
+        }
+        .details-toggle svg, .sidebar-summary svg {
+            transition: transform 0.3s ease;
+        }
+        .details-toggle.open svg, details[open] > .sidebar-summary svg {
+            transform: rotate(180deg);
+        }
+        details[open] > .sidebar-summary {
+            color: var(--accent-green);
+        }
 
         /* === Tax Calc Styles & Sidebar === */
         #tax-calculator-sidebar {
@@ -50,92 +74,106 @@
              color: var(--text-light);
         }
         #tax-calculator-sidebar .result-card-dark { 
-            background-color: var(--bg-dark); 
+            background-color: var(--bg-card); /* Changed for contrast */
             border-left: 4px solid var(--accent-green); 
         }
         #tax-calculator-sidebar .result-card-dark h3 { color: var(--text-secondary); }
         #tax-calculator-sidebar .result-card-dark p { color: var(--text-light); }
         #tax-calculator-sidebar .modal-overlay { transition: opacity 0.3s ease; }
         #tax-calculator-sidebar .modal-content { transition: transform 0.3s ease; background-color: var(--bg-card); }
+        
     </style>
 </head>
 <body>
     <div class="lg:grid lg:grid-cols-12">
         <!-- Marketplace Sidebar -->
-        <aside id="sidebar" class="lg:col-span-3 lg:h-screen lg:sticky top-0 p-6 marketplace-sidebar space-y-6 overflow-y-auto">
-             <div class="mb-4">
+        <aside id="sidebar" class="lg:col-span-3 lg:h-screen lg:sticky top-0 p-6 marketplace-sidebar space-y-2 overflow-y-auto">
+             <div class="mb-6">
                 <h1 class="text-3xl font-bold text-white">Precify</h1>
                 <p class="text-sm text-gray-400">Sua estratégia de lucro para marketplaces</p>
             </div>
-            <div class="space-y-4">
+            <div class="space-y-2">
                 <details open>
-                    <summary class="font-semibold text-lg">Custos Principais</summary>
-                    <div class="pt-4 space-y-4 pl-2">
-                        <div><label for="productCost" class="block text-sm font-medium text-gray-300">Custo do Produto (R$)</label><input type="number" id="productCost" class="input-field mt-1 block w-full rounded-md p-2" value="50"></div>
-                        <div><label for="productWeight" class="block text-sm font-medium text-gray-300">Peso (kg)</label><input type="number" id="productWeight" class="input-field mt-1 block w-full rounded-md p-2" value="0.8"></div>
+                    <summary class="sidebar-summary flex justify-between items-center p-3 rounded-md hover:bg-gray-900/50 transition-colors cursor-pointer">
+                        <span class="font-semibold text-lg text-white">Custos Principais</span>
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <div class="pt-4 space-y-4 pl-4 border-l border-gray-700 ml-3">
+                        <div><label for="productCost" class="block text-sm font-medium text-gray-300">Custo do Produto (R$)</label><input type="number" id="productCost" class="input-field mt-1 block w-full rounded-md p-2" value=""></div>
+                        <div><label for="productWeight" class="block text-sm font-medium text-gray-300">Peso (kg)</label><input type="number" id="productWeight" class="input-field mt-1 block w-full rounded-md p-2" value=""></div>
                         <div><label for="categorySelect" class="block text-sm font-medium text-gray-300">Categoria do Produto</label><select id="categorySelect" class="select-field mt-1 block w-full rounded-md p-2"></select></div>
                     </div>
                 </details>
 
                 <details>
-                    <summary class="font-semibold text-lg">Custos Adicionais</summary>
-                    <div id="additional-costs-container" class="pt-4 space-y-3 pl-2"></div>
-                    <div class="pl-2 mt-2">
-                        <button id="add-cost-btn" class="text-sm text-accent-green hover:text-accent-green-dark w-full text-left">+ Adicionar Custo</button>
+                    <summary class="sidebar-summary flex justify-between items-center p-3 rounded-md hover:bg-gray-900/50 transition-colors cursor-pointer">
+                        <span class="font-semibold text-lg text-white">Custos Adicionais</span>
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <div class="pt-4 space-y-3 pl-4 border-l border-gray-700 ml-3">
+                        <div id="additional-costs-container" class="space-y-3"></div>
+                        <button id="add-cost-btn" class="w-full text-center p-2 rounded-md border border-dashed border-gray-600 hover:bg-gray-700 hover:border-accent-green text-accent-green transition text-sm">+ Adicionar Custo</button>
                     </div>
                 </details>
 
-                <details open>
-                    <summary class="font-semibold text-lg">Taxas & Frete</summary>
-                      <div class="pt-4 space-y-4 pl-2">
-                          <div><label for="taxRate" class="block text-sm font-medium text-gray-300">Impostos (%)</label><input type="number" id="taxRate" class="input-field mt-1 block w-full rounded-md p-2" value="6"></div>
-                          <div>
-                              <label for="shippingCost" class="block text-sm font-medium text-gray-300">Frete Manual (R$)</label>
-                              <input type="number" id="shippingCost" class="input-field mt-1 block w-full rounded-md p-2" value="25">
-                              <p class="text-xs text-gray-400 mt-1">Ignorado para ML, Shein e TikTok.</p>
-                          </div>
+                <details>
+                    <summary class="sidebar-summary flex justify-between items-center p-3 rounded-md hover:bg-gray-900/50 transition-colors cursor-pointer">
+                        <span class="font-semibold text-lg text-white">Taxas & Frete</span>
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <div class="pt-4 space-y-4 pl-4 border-l border-gray-700 ml-3">
+                        <div><label for="taxRate" class="block text-sm font-medium text-gray-300">Impostos (%)</label><input type="number" id="taxRate" class="input-field mt-1 block w-full rounded-md p-2" value=""></div>
+                        <div>
+                            <label for="shippingCost" class="block text-sm font-medium text-gray-300">Frete Manual (R$)</label>
+                            <input type="number" id="shippingCost" class="input-field mt-1 block w-full rounded-md p-2" value="">
+                            <p class="text-xs text-gray-400 mt-1">Ignorado para ML, Shein e TikTok.</p>
+                        </div>
                     </div>
                 </details>
                 
-                 <details open>
-                    <summary class="font-semibold text-lg">Configurações</summary>
-                      <div class="pt-4 space-y-4 pl-2">
-                          <div><label for="mlReputation" class="block text-sm font-medium text-gray-300">Reputação Mercado Livre</label>
-                              <select id="mlReputation" class="select-field mt-1 block w-full rounded-md p-2">
-                                  <option value="verde">Verde (Líder, etc.)</option>
-                                  <option value="amarela">Amarela</option>
-                                  <option value="laranja">Laranja / Vermelha</option>
-                              </select>
-                          </div>
-                          <div class="flex justify-between items-center">
-                              <label for="profitMargin" class="block text-sm font-medium text-gray-300">Margem de Lucro</label>
-                              <span id="profit-value" class="font-bold text-accent-green text-lg">20%</span>
-                          </div>
-                          <input type="range" id="profitMargin" min="0" max="100" value="20" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                <details>
+                    <summary class="sidebar-summary flex justify-between items-center p-3 rounded-md hover:bg-gray-900/50 transition-colors cursor-pointer">
+                        <span class="font-semibold text-lg text-white">Configurações</span>
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <div class="pt-4 space-y-4 pl-4 border-l border-gray-700 ml-3">
+                        <div><label for="mlReputation" class="block text-sm font-medium text-gray-300">Reputação Mercado Livre</label>
+                            <select id="mlReputation" class="select-field mt-1 block w-full rounded-md p-2">
+                                <option value="verde">Verde (Líder, etc.)</option>
+                                <option value="amarela">Amarela</option>
+                                <option value="laranja">Laranja / Vermelha</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <label for="profitMargin" class="block text-sm font-medium text-gray-300">Margem de Lucro</label>
+                            <span id="profit-value" class="font-bold text-accent-green text-lg">0%</span>
+                        </div>
+                        <input type="range" id="profitMargin" min="0" max="100" value="0" class="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer">
                     </div>
                 </details>
 
-                <details open>
-                    <summary class="font-semibold text-lg">Marketplaces</summary>
-                    <div id="marketplaces-list" class="pt-4 space-y-3 pl-2"></div>
-                </details>
-
-                <details open>
-                    <summary class="font-semibold text-lg">Outras Ferramentas</summary>
-                    <div class="pt-4 pl-2">
-                         <button id="open-tax-calculator-btn" class="w-full text-left p-2 rounded-md bg-gray-700 hover:bg-gray-600 transition text-white">
-                            Calculadora de Taxas
-                         </button>
-                    </div>
+                <details>
+                    <summary class="sidebar-summary flex justify-between items-center p-3 rounded-md hover:bg-gray-900/50 transition-colors cursor-pointer">
+                        <span class="font-semibold text-lg text-white">Marketplaces</span>
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <div id="marketplaces-list" class="pt-4 space-y-3 pl-4 border-l border-gray-700 ml-3"></div>
                 </details>
             </div>
         </aside>
 
         <!-- Marketplace Main Content -->
-        <main class="lg:col-span-9 p-6 sm:p-8">
-             <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <main class="lg:col-span-9 p-6 sm:p-8 relative">
+            <header class="sticky top-0 z-10 bg-gray-800/50 backdrop-blur-sm -mx-6 -mt-6 sm:-mx-8 sm:-mt-8 mb-6 sm:mb-8 p-6 sm:p-8 flex justify-between items-center border-b border-gray-700">
+                <h2 class="text-2xl font-bold text-white">Resultados da Simulação</h2>
+                <button id="open-tax-calculator-btn" class="flex items-center gap-2 px-4 py-2 bg-accent-green text-bg-dark font-semibold rounded-lg hover:bg-accent-green-dark transition text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M224,96v56a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V96a16,16,0,0,1,16-16H208A16,16,0,0,1,224,96Zm-44,8a12,12,0,1,0,12,12A12,12,0,0,0,180,104ZM88,140a12,12,0,1,0-12-12A12,12,0,0,0,88,140Z"></path></svg>
+                    <span>Calculadora de Taxas</span>
+                </button>
+            </header>
+            <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 <div id="placeholder" class="col-span-full text-center py-20">
-                    <h2 class="text-2xl font-semibold text-gray-400">Selecione um marketplace para começar</h2>
+                    <h2 class="text-2xl font-semibold text-gray-400">Insira os custos e selecione um marketplace para começar</h2>
                     <p class="text-gray-500 mt-2">Os resultados aparecerão aqui em tempo real.</p>
                 </div>
             </div>
@@ -144,7 +182,7 @@
 
     <!-- Tax Calculator Sidebar -->
     <div id="tax-calculator-sidebar" class="fixed top-0 right-0 w-full h-full overflow-y-auto">
-         <div class="w-full max-w-4xl tax-calc-panel rounded-l-2xl shadow-lg p-6 md:p-10 relative ml-auto min-h-full">
+         <div class="w-full max-w-lg tax-calc-panel rounded-l-2xl shadow-lg p-6 md:p-10 relative ml-auto min-h-full">
             <button id="close-tax-calculator-btn" class="absolute top-4 left-4 text-gray-400 hover:text-red-500 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 256 256"><path d="M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z"></path></svg>
             </button>
@@ -173,7 +211,6 @@
         const marketplacesList = document.getElementById('marketplaces-list');
         const categorySelect = document.getElementById('categorySelect');
         const resultsGrid = document.getElementById('results-grid');
-        const placeholder = document.getElementById('placeholder');
         const profitValueSpan = document.getElementById('profit-value');
         const addCostBtn = document.getElementById('add-cost-btn');
         const additionalCostsContainer = document.getElementById('additional-costs-container');
@@ -209,6 +246,7 @@
                 document.getElementById(e.target.dataset.rowid).remove();
                 calculateAndRender();
             });
+            calculateAndRender(); // Recalculate when a new cost is added
         }
 
         function populateUI() {
@@ -227,7 +265,6 @@
                 html += `</div>`;
             }
             marketplacesList.innerHTML = html;
-            addCostRow(); 
         }
 
         function calculateAndRender() {
@@ -257,29 +294,44 @@
             const selectedMkts = Array.from(document.querySelectorAll('input[name="marketplace"]:checked')).map(cb => cb.value);
             
             resultsGrid.innerHTML = '';
-            if (selectedMkts.length === 0) {
-                resultsGrid.appendChild(placeholder);
-                placeholder.style.display = 'block';
+            if (selectedMkts.length === 0 || productCost === 0) {
+                 resultsGrid.className = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6';
+                 resultsGrid.innerHTML = `<div id="placeholder" class="col-span-full text-center py-20">
+                    <h2 class="text-2xl font-semibold text-gray-400">Insira os custos e selecione um marketplace para começar</h2>
+                    <p class="text-gray-500 mt-2">Os resultados aparecerão aqui em tempo real.</p>
+                </div>`;
                 return;
             }
-            placeholder.style.display = 'none';
 
+            // --- COLUMN-BASED LAYOUT LOGIC ---
+            resultsGrid.className = 'flex w-full gap-6 flex-col md:flex-row'; // Use flexbox for columns
+            const numColumns = window.innerWidth >= 1280 ? 3 : (window.innerWidth >= 768 ? 2 : 1);
+            
+            for (let i = 0; i < numColumns; i++) {
+                const column = document.createElement('div');
+                column.className = 'flex flex-col gap-6 w-full';
+                resultsGrid.appendChild(column);
+            }
+            const columns = resultsGrid.querySelectorAll('.flex-col');
+            // --- END ---
+
+            const cardDataArray = [];
             selectedMkts.forEach(mktKey => {
                 const mkt = officialMarketplaceData[mktKey];
                 const commissionRate = (mkt.categories && mkt.categories[selectedCategory]) || mkt.commission;
                 const transactionFeeRate = mkt.transactionFee || 0;
                 const shippingFeeRate = mkt.shippingFeeRate || 0;
-                
                 let shippingCostForCalc = manualShippingCost;
                 let fixedFee = 0;
                 let isMlSpecialCase = mktKey.includes('mercadoLivre');
                 let isShopeeCase = mktKey.includes('shopee');
                 let isSheinCase = mktKey.includes('shein');
                 let isTikTokCase = mktKey.includes('tiktok');
-
                 let denominator = 1 - commissionRate - taxRate - profitMargin - transactionFeeRate - shippingFeeRate - totalPercentageOtherCosts;
+
                 if (denominator <= 0 && !isShopeeCase && !isTikTokCase) { 
-                    resultsGrid.innerHTML += generateErrorCard(mkt); return;
+                    cardDataArray.push({ error: true, mkt: mkt });
+                    return; 
                 }
 
                 let sellingPrice;
@@ -303,7 +355,6 @@
                 }
 
                 let commissionValue, shippingFeeValue = 0;
-                
                 if(isShopeeCase) { commissionValue = Math.min(sellingPrice * commissionRate, 100); } 
                 else { commissionValue = mkt.calculateCommission ? mkt.calculateCommission(sellingPrice, commissionRate) : sellingPrice * commissionRate; }
 
@@ -312,7 +363,10 @@
                 if((isShopeeCase && commissionValue === 100)) {
                     const fixedCostsWithCappedFees = baseCosts + shippingCostForCalc + fixedFee + commissionValue;
                     const newDenominator = 1 - taxRate - profitMargin - transactionFeeRate - totalPercentageOtherCosts;
-                    if (newDenominator <= 0) { resultsGrid.innerHTML += generateErrorCard(mkt); return; }
+                    if (newDenominator <= 0) { 
+                        cardDataArray.push({ error: true, mkt: mkt });
+                        return;
+                    }
                     sellingPrice = fixedCostsWithCappedFees / newDenominator;
                 }
 
@@ -324,26 +378,35 @@
                     const desc = row.querySelector('.cost-desc').value || 'Custo Adicional';
                     const value = parseFloat(row.querySelector('.cost-value').value) || 0;
                     const type = row.querySelector('.cost-type').value;
-                    additionalCostsCalculated.push({
-                        desc,
-                        value: type === 'rs' ? value : sellingPrice * (value / 100)
-                    });
+                    additionalCostsCalculated.push({ desc, value: type === 'rs' ? value : sellingPrice * (value / 100) });
                 });
                 const totalAdditionalCostsValue = additionalCostsCalculated.reduce((sum, cost) => sum + cost.value, 0);
-
                 const totalFees = commissionValue + transactionFeeValue + fixedFee + shippingFeeValue;
                 const totalCosts = productCost + totalAdditionalCostsValue + shippingCostForCalc + taxValue + totalFees;
                 
-                resultsGrid.innerHTML += generateResultCard({
-                    ...mkt, sellingPrice, profitValue,
+                cardDataArray.push({
+                    error: false, ...mkt, sellingPrice, profitValue,
                     breakdown: { productCost, additionalCosts: additionalCostsCalculated, shippingCost: shippingCostForCalc, commissionValue, transactionFeeValue, fixedFee, shippingFeeValue, taxValue, totalFees, totalCosts }
                 });
+            });
+
+            // Distribute cards into columns
+            cardDataArray.forEach((data, index) => {
+                const columnIndex = index % numColumns;
+                if (data.error) {
+                    columns[columnIndex].innerHTML += generateErrorCard(data.mkt);
+                } else {
+                    columns[columnIndex].innerHTML += generateResultCard(data);
+                }
             });
             
             document.querySelectorAll('[data-toggle="details"]').forEach(button => {
                 button.addEventListener('click', (e) => {
-                    const targetId = e.currentTarget.getAttribute('data-target');
-                    document.getElementById(targetId).classList.toggle('hidden');
+                    const toggleButton = e.currentTarget;
+                    const targetId = toggleButton.getAttribute('data-target');
+                    const targetElement = document.getElementById(targetId);
+                    toggleButton.classList.toggle('open');
+                    targetElement.classList.toggle('open');
                 });
             });
         }
@@ -357,32 +420,45 @@
             const detailsId = `details-${name.replace(/[^a-zA-Z0-9]/g, '')}`;
             
             let additionalCostsHtml = breakdown.additionalCosts.map(cost => 
-                `<div class="flex justify-between items-baseline"><span class="text-gray-400">${cost.desc}</span><span class="text-right">${formatCurrency(cost.value)} <br><span class="text-gray-500 text-xs">${toPercent(cost.value, sellingPrice)}</span></span></div>`
+                cost.value > 0 ? `<div class="flex justify-between items-center text-xs"><span class="text-gray-400">${cost.desc}</span><span class="text-right font-mono">${formatCurrency(cost.value)} <span class="text-gray-500">(${toPercent(cost.value, sellingPrice)})</span></span></div>` : ''
             ).join('');
 
             return `
-                <div class="card rounded-lg p-5 flex flex-col">
-                    <h3 class="font-bold text-xl text-white">${name}</h3>
-                    <p class="text-sm text-gray-400 mb-4 h-10">${note}</p>
-                    <div class="my-4 space-y-4 text-center">
-                        <div><p class="text-sm text-gray-400">Preço de Venda</p><p class="text-4xl font-bold text-accent-green">${formatCurrency(sellingPrice)}</p></div>
-                        <div><p class="text-sm text-gray-400">Lucro</p><p class="text-2xl font-semibold text-white">${formatCurrency(profitValue)}</p></div>
-                    </div>
-                    <div class="mt-auto pt-4 border-t border-gray-700">
-                        <button data-toggle="details" data-target="${detailsId}" class="text-sm text-accent-green hover:text-accent-green-dark w-full text-center">Ver detalhes</button>
-                        <div id="${detailsId}" class="hidden mt-4 text-sm space-y-2">
-                            <div class="flex justify-between items-baseline"><span class="text-gray-400">Custo do Produto</span><span class="text-right">${formatCurrency(breakdown.productCost)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.productCost, sellingPrice)}</span></span></div>
-                            ${additionalCostsHtml}
-                            <div class="flex justify-between items-baseline"><span class="text-gray-400">Frete (Custo)</span><span class="text-right">${formatCurrency(breakdown.shippingCost)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.shippingCost, sellingPrice)}</span></span></div>
-                            <hr class="border-gray-700 my-1">
-                            <div class="flex justify-between items-baseline"><span class="text-gray-400">Comissão Mkt</span><span class="text-right">${formatCurrency(breakdown.commissionValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.commissionValue, sellingPrice)}</span></span></div>
-                            ${breakdown.transactionFeeValue > 0 ? `<div class="flex justify-between items-baseline"><span class="text-gray-400">Taxa de Transação</span><span class="text-right">${formatCurrency(breakdown.transactionFeeValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.transactionFeeValue, sellingPrice)}</span></span></div>` : ''}
-                            ${breakdown.shippingFeeValue > 0 ? `<div class="flex justify-between items-baseline"><span class="text-gray-400">Taxa de Envio</span><span class="text-right">${formatCurrency(breakdown.shippingFeeValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.shippingFeeValue, sellingPrice)}</span></span></div>` : ''}
-                            ${breakdown.fixedFee > 0 ? `<div class="flex justify-between items-baseline"><span class="text-gray-400">Taxa Fixa</span><span class="text-right">${formatCurrency(breakdown.fixedFee)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.fixedFee, sellingPrice)}</span></span></div>` : ''}
-                            <div class="flex justify-between items-baseline"><span class="text-gray-400">Impostos</span><span class="text-right">${formatCurrency(breakdown.taxValue)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.taxValue, sellingPrice)}</span></span></div>
-                            <hr class="border-gray-700 my-1">
-                            <div class="flex justify-between items-baseline font-bold"><span class="text-gray-300">Total de Custos</span><span class="text-right">${formatCurrency(breakdown.totalCosts)} <br><span class="text-gray-500 text-xs">${toPercent(breakdown.totalCosts, sellingPrice)}</span></span></div>
+                <div class="card rounded-xl shadow-lg flex flex-col overflow-hidden border border-transparent hover:border-accent-green/50 transition-all duration-300 bg-gradient-to-br from-gray-800 to-gray-900">
+                    <div class="p-5 flex flex-col">
+                        <h3 class="font-bold text-xl text-white truncate">${name}</h3>
+                        <p class="text-xs text-gray-500 mb-4 h-5">${note}</p>
+                        
+                        <div class="my-6 text-center flex flex-col justify-center">
+                            <p class="text-sm text-gray-400">Preço de Venda Sugerido</p>
+                            <p class="text-4xl font-bold text-accent-green tracking-tight">${formatCurrency(sellingPrice)}</p>
                         </div>
+
+                        <div class="flex justify-between items-center bg-gray-900/70 rounded-lg p-3">
+                            <span class="text-sm text-gray-300">Seu Lucro Estimado</span>
+                            <span class="text-lg font-semibold text-white">${formatCurrency(profitValue)}</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-900/50 border-t border-gray-700/50 mt-auto">
+                        <div id="${detailsId}" class="details-content text-sm space-y-2 px-5 pb-4">
+                            <div class="pt-4"></div>
+                            <div class="flex justify-between items-center text-xs"><span class="text-gray-400">Custo do Produto</span><span class="text-right font-mono">${formatCurrency(breakdown.productCost)} <span class="text-gray-500">(${toPercent(breakdown.productCost, sellingPrice)})</span></span></div>
+                            ${additionalCostsHtml}
+                            <div class="flex justify-between items-center text-xs"><span class="text-gray-400">Frete (Custo)</span><span class="text-right font-mono">${formatCurrency(breakdown.shippingCost)} <span class="text-gray-500">(${toPercent(breakdown.shippingCost, sellingPrice)})</span></span></div>
+                            <hr class="border-gray-700/50 my-2">
+                            <div class="flex justify-between items-center text-xs"><span class="text-gray-400">Comissão Mkt</span><span class="text-right font-mono">${formatCurrency(breakdown.commissionValue)} <span class="text-gray-500">(${toPercent(breakdown.commissionValue, sellingPrice)})</span></span></div>
+                            ${breakdown.transactionFeeValue > 0 ? `<div class="flex justify-between items-center text-xs"><span class="text-gray-400">Taxa de Transação</span><span class="text-right font-mono">${formatCurrency(breakdown.transactionFeeValue)} <span class="text-gray-500">(${toPercent(breakdown.transactionFeeValue, sellingPrice)})</span></span></div>` : ''}
+                            ${breakdown.shippingFeeValue > 0 ? `<div class="flex justify-between items-center text-xs"><span class="text-gray-400">Taxa de Envio</span><span class="text-right font-mono">${formatCurrency(breakdown.shippingFeeValue)} <span class="text-gray-500">(${toPercent(breakdown.shippingFeeValue, sellingPrice)})</span></span></div>` : ''}
+                            ${breakdown.fixedFee > 0 ? `<div class="flex justify-between items-center text-xs"><span class="text-gray-400">Taxa Fixa</span><span class="text-right font-mono">${formatCurrency(breakdown.fixedFee)} <span class="text-gray-500">(${toPercent(breakdown.fixedFee, sellingPrice)})</span></span></div>` : ''}
+                            <div class="flex justify-between items-center text-xs"><span class="text-gray-400">Impostos</span><span class="text-right font-mono">${formatCurrency(breakdown.taxValue)} <span class="text-gray-500">(${toPercent(breakdown.taxValue, sellingPrice)})</span></span></div>
+                            <hr class="border-gray-700/50 my-2">
+                            <div class="flex justify-between items-center text-sm font-bold"><span class="text-gray-300">Total de Custos</span><span class="text-right font-mono">${formatCurrency(breakdown.totalCosts)} <span class="text-gray-500">(${toPercent(breakdown.totalCosts, sellingPrice)})</span></span></div>
+                        </div>
+                        <button data-toggle="details" data-target="${detailsId}" class="details-toggle w-full text-center p-3 text-sm text-gray-400 hover:text-white flex justify-center items-center gap-2 transition-colors">
+                            <span>Detalhes</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
                     </div>
                 </div>`;
         }
@@ -392,20 +468,23 @@
             sidebar.addEventListener('input', calculateAndRender);
             addCostBtn.addEventListener('click', addCostRow);
             calculateAndRender();
+            window.addEventListener('resize', calculateAndRender); // Recalculate layout on resize
         });
     })();
     
     // IIFE to encapsulate Tax Calculator logic
     (function() {
         const taxCalcHTML = `
-            <button id="taxCalcOpenSettingsBtn" class="absolute top-5 right-6 text-sm font-medium text-gray-400 hover:text-accent-green px-3 py-1.5 rounded-lg transition">
-                Configuração
-            </button>
-            <div class="text-center mb-8">
-                <h1 class="text-3xl md:text-4xl font-bold text-white">Calculadora de Taxas Precify</h1>
-                <p class="text-gray-400 mt-2">Simule suas vendas e saiba exatamente quanto e quando irá receber.</p>
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-bold text-white">Calculadora de Taxas</h1>
+                    <p class="text-gray-400 mt-1">Simule e saiba exatamente quanto irá receber.</p>
+                </div>
+                <button id="taxCalcOpenSettingsBtn" class="text-gray-400 hover:text-accent-green p-2 rounded-lg transition">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 256 256"><path d="M244.8,142.48a12,12,0,0,1-13.6,13.6L224,152.93V160a16,16,0,0,1-16,16h-24a16,16,0,0,1-16-16v-8.42l-14.48,5.8a12,12,0,0,1-16-6.4l-16-40a12,12,0,0,1,3.2-16.8l12-8L136,84.07V72a16,16,0,0,1-16-16h-4a16,16,0,0,1-16,16v12.07l-12-8a12,12,0,0,1,3.2-16.8l16-40a12,12,0,0,1,16-6.4L137.6,34.4a12,12,0,0,1,14.4,14.4L148.8,60.8l12.8,8.53V64a16,16,0,0,1,16-16h24a16,16,0,0,1,16,16v8.93l7.2,3.15a12,12,0,0,1,9.6,15.2Zm-86.25,5.52a28,28,0,1,0-29.1,0,12,12,0,0,1-21,9.6l-16-40a12,12,0,0,1,3.2-16.8L107.6,96,96,88.48l-9.6-6.4-12-8-12,8L50.4,90.4l-12,8a12,12,0,0,1,3.2,16.8l16,40a12,12,0,0,1-2.4,15.2l-13.6,13.6a12,12,0,0,1-12.8-18.4L32,176.93V160a16,16,0,0,1,16-16h24a16,16,0,0,1,16,16v8.42l14.48-5.8a12,12,0,0,1,16,6.4l16,40a12,12,0,0,1-3.2,16.8l-12,8L120,224.07V232a16,16,0,0,1-16,16h-4a16,16,0,0,1-16-16v-12.07l12-8a12,12,0,0,1-3.2-16.8l-16-40a12,12,0,0,1-16,6.4L46.4,168.8a12,12,0,0,1-14.4-14.4L35.2,142.4,22.4,134.87V128a16,16,0,0,1,16-16h4a16,16,0,0,1,16,16v12.07l12,8a12,12,0,0,1-3.2,16.8l-16,40a12,12,0,0,1,2.4-15.2l13.6-13.6a12,12,0,0,1,12.8,18.4L83.2,201.6l12-8,12,8,9.6,6.4,12-8,12-8,12,8,13.6-13.6a12,12,0,0,1,21-9.6Z"></path></svg>
+                </button>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+            <div class="flex flex-col gap-8">
                 <div class="space-y-6">
                     <div class="flex border rounded-lg p-1" style="border-color: var(--border-color); background-color: var(--bg-dark);">
                         <button id="taxCalcBtnCharge" class="w-1/2 p-2 rounded-md text-sm font-medium transition">Quero Cobrar</button>
@@ -488,7 +567,7 @@
                 const calendarIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>`;
                 finalCardHTML = createResultCard('Previsão de recebimento', receiveDate, calendarIcon);
             }
-            const walletIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 3a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 12m15-3V6a2.25 2.25 0 00-2.25-2.25H8.25A2.25 2.25 0 006 6v3m15 6v-2.25M3 15v-2.25" /></svg>`;
+            const walletIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25-2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 3a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 12m15-3V6a2.25 2.25 0 00-2.25-2.25H8.25A2.25 2.25 0 006 6v3m15 6v-2.25M3 15v-2.25" /></svg>`;
             const feeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>`;
             const priceIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
             resultsDiv.innerHTML = createResultCard('Para receber (líquido)', formatCurrency(netAmount), walletIcon) + createResultCard('Você deveria cobrar', formatCurrency(saleAmount), priceIcon) + createResultCard('Taxas da venda', feeText, feeIcon) + finalCardHTML;
