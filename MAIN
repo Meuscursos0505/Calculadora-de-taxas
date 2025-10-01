@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Taxas Pagar.me</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .result-card {
+            background-color: #f0f9ff; /* light blue */
+            border-left: 4px solid #0ea5e9; /* sky blue */
+        }
+        .result-card h3 {
+            color: #0c4a6e; /* darker blue */
+        }
+        .result-card p {
+            color: #075985; /* dark blue */
+        }
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6 md:p-10 relative">
+        
+        <!-- Botão de Configurações -->
+        <button id="openSettingsBtn" class="absolute top-4 right-4 text-slate-400 hover:text-sky-500 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256"><path d="M239.81,117.29a8,8,0,0,0-9.45-5.61l-24.42,8.14a87.91,87.91,0,0,0-23.51-30.15l8.14-24.42a8,8,0,0,0-5.61-9.45,88.16,88.16,0,0,0-38.35-6.19,8,8,0,0,0-7,7l-8.14,24.42A87.91,87.91,0,0,0,101.32,67.5l-8.14-24.42a8,8,0,0,0-7-7,88.16,88.16,0,0,0-38.35,6.19,8,8,0,0,0-5.61,9.45l8.14,24.42A87.91,87.91,0,0,0,26.84,98.68l-24.42-8.14a8,8,0,0,0-9.45,5.61A88.16,88.16,0,0,0,0,136a8,8,0,0,0,7,7l24.42,8.14a87.91,87.91,0,0,0,23.51,30.15l-8.14,24.42a8,8,0,0,0,5.61,9.45,88.16,88.16,0,0,0,38.35,6.19,8,8,0,0,0,7-7l8.14-24.42a87.91,87.91,0,0,0,30.15,23.51l-8.14,24.42a8,8,0,0,0,7,7,88.16,88.16,0,0,0,38.35-6.19,8,8,0,0,0,5.61-9.45l-8.14-24.42a87.91,87.91,0,0,0,23.51-30.15l24.42,8.14a8,8,0,0,0,9.45-5.61,88.16,88.16,0,0,0,6.19-38.35A8,8,0,0,0,239.81,117.29ZM128,176a48,48,0,1,1,48-48A48.05,48.05,0,0,1,128,176Z"></path></svg>
+        </button>
+
+        <!-- Cabeçalho -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-800">Calculadora Pagar.me</h1>
+            <p class="text-slate-500 mt-2">Simule suas vendas e saiba exatamente quanto e quando irá receber.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+            
+            <!-- Seção de Inputs -->
+            <div class="space-y-6">
+                <!-- Seletor de Modo -->
+                <div class="flex border border-slate-200 rounded-lg p-1 bg-slate-100">
+                    <button id="btnCharge" class="w-1/2 p-2 rounded-md text-sm font-medium transition">Quero Cobrar</button>
+                    <button id="btnReceive" class="w-1/2 p-2 rounded-md text-sm font-medium transition">Quero Receber</button>
+                </div>
+
+                <div>
+                    <label for="amountInput" id="amountLabel" class="block text-sm font-medium text-slate-700 mb-1">Qual o valor da venda?</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">R$</span>
+                        <input type="text" id="amountInput" class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition" value="100,00">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="paymentMethod" class="block text-sm font-medium text-slate-700 mb-1">Meio de Pagamento</label>
+                    <select id="paymentMethod" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
+                        <option value="credit_card">Cartão de Crédito</option>
+                        <option value="boleto">Boleto</option>
+                        <option value="pix">PIX</option>
+                    </select>
+                </div>
+                
+                <div id="creditCardOptions" class="space-y-6">
+                    <div>
+                        <label for="installments" class="block text-sm font-medium text-slate-700 mb-1">Número de Parcelas</label>
+                        <select id="installments" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
+                            <option value="1">1x (à vista)</option>
+                            <option value="2">2x</option>
+                            <option value="3">3x</option>
+                            <option value="4">4x</option>
+                            <option value="5">5x</option>
+                            <option value="6">6x</option>
+                            <option value="7">7x</option>
+                            <option value="8">8x</option>
+                            <option value="9">9x</option>
+                            <option value="10">10x</option>
+                            <option value="11">11x</option>
+                            <option value="12">12x</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Resultados -->
+            <div class="bg-slate-50 rounded-lg p-6 flex flex-col justify-center">
+                <h2 class="text-xl font-semibold text-slate-800 mb-4 text-center">Resultado da Simulação</h2>
+                <div id="results" class="space-y-4"></div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-8">
+            <p class="text-xs text-slate-400">
+                * As taxas utilizadas nesta calculadora são baseadas nas informações fornecidas. <br> 
+                Consulte seu contrato com a Pagar.me para obter os valores exatos.
+            </p>
+        </div>
+    </div>
+
+    <!-- Modal de Configurações -->
+    <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 modal-overlay opacity-0 pointer-events-none">
+        <div class="bg-white rounded-2xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-content transform scale-95">
+            <div class="p-6 sticky top-0 bg-white border-b border-slate-200">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-slate-800">Configurar Taxas</h2>
+                    <button id="closeSettingsBtn" class="text-slate-400 hover:text-red-500 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 256 256"><path d="M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6 space-y-8">
+                <!-- Taxas Cartão de Crédito -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-slate-700 border-b pb-2">Cartão de Crédito (%)</h3>
+                    <div id="creditCardRatesContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        <!-- Inputs de taxa são gerados aqui pelo JS -->
+                    </div>
+                </div>
+
+                <!-- Outras Taxas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-slate-700 border-b pb-2">PIX</h3>
+                        <div>
+                            <label for="pixRate" class="block text-sm font-medium text-slate-600 mb-1">Taxa (%)</label>
+                            <input type="text" id="pixRate" class="w-full p-2 border border-slate-300 rounded-lg">
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-slate-700 border-b pb-2">Boleto</h3>
+                        <div>
+                            <label for="boletoRate" class="block text-sm font-medium text-slate-600 mb-1">Taxa Fixa (R$)</label>
+                            <input type="text" id="boletoRate" class="w-full p-2 border border-slate-300 rounded-lg">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 sticky bottom-0 bg-white border-t border-slate-200 flex justify-end gap-4">
+                <button id="cancelSettingsBtn" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition">Cancelar</button>
+                <button id="saveSettingsBtn" class="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- CONFIGURAÇÃO DAS TAXAS (VALORES PADRÃO) ---
+        let rates = {
+            pix: 1.19,
+            boleto: 3.49,
+            creditCard: {
+                1: 3.79, 2: 5.28, 3: 7.67, 4: 9.08, 5: 10.54, 6: 11.96,
+                7: 13.37, 8: 14.79, 9: 16.22, 10: 17.64, 11: 19.06, 12: 20.51
+            }
+        };
+
+        // --- ELEMENTOS DO DOM ---
+        const amountInput = document.getElementById('amountInput');
+        const paymentMethodSelect = document.getElementById('paymentMethod');
+        const installmentsSelect = document.getElementById('installments');
+        const creditCardOptionsDiv = document.getElementById('creditCardOptions');
+        const resultsDiv = document.getElementById('results');
+        const btnCharge = document.getElementById('btnCharge');
+        const btnReceive = document.getElementById('btnReceive');
+        const amountLabel = document.getElementById('amountLabel');
+
+        // --- ELEMENTOS DO MODAL ---
+        const openSettingsBtn = document.getElementById('openSettingsBtn');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        const cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const modalContent = settingsModal.querySelector('.modal-content');
+        const pixRateInput = document.getElementById('pixRate');
+        const boletoRateInput = document.getElementById('boletoRate');
+        const creditCardRatesContainer = document.getElementById('creditCardRatesContainer');
+        
+        // --- ESTADO DA APLICAÇÃO ---
+        let calculationMode = 'charge';
+
+        // --- FUNÇÕES AUXILIARES ---
+        const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(isNaN(value) ? 0 : value);
+        const parseCurrency = (value) => {
+            if (typeof value !== 'string') return 0;
+            const number = parseFloat(value.replace("R$", "").replace(/\./g, '').replace(',', '.').trim());
+            return isNaN(number) ? 0 : number;
+        };
+
+        const toggleCreditCardOptions = () => {
+            creditCardOptionsDiv.style.display = paymentMethodSelect.value === 'credit_card' ? 'block' : 'none';
+        };
+
+        const updateToggleUI = () => {
+            if (calculationMode === 'charge') {
+                btnCharge.classList.add('bg-sky-500', 'text-white', 'shadow-sm');
+                btnCharge.classList.remove('text-slate-500');
+                btnReceive.classList.remove('bg-sky-500', 'text-white', 'shadow-sm');
+                btnReceive.classList.add('text-slate-500');
+                amountLabel.textContent = 'Qual o valor da venda? (a cobrar)';
+            } else {
+                btnReceive.classList.add('bg-sky-500', 'text-white', 'shadow-sm');
+                btnReceive.classList.remove('text-slate-500');
+                btnCharge.classList.remove('bg-sky-500', 'text-white', 'shadow-sm');
+                btnCharge.classList.add('text-slate-500');
+                amountLabel.textContent = 'Quanto você quer receber? (líquido)';
+            }
+        };
+
+        const createResultCard = (title, value, icon) => `
+            <div class="result-card p-4 rounded-lg shadow-sm flex items-center">
+                <div class="mr-4">${icon}</div>
+                <div>
+                    <h3 class="text-sm font-medium">${title}</h3>
+                    <p class="text-xl font-semibold">${value}</p>
+                </div>
+            </div>`;
+
+        // --- LÓGICA DE CÁLCULO ---
+        const calculate = () => {
+            const inputValue = parseCurrency(amountInput.value);
+            const paymentMethod = paymentMethodSelect.value;
+            const installments = parseInt(installmentsSelect.value);
+            
+            let saleAmount = 0, netAmount = 0, pagarmeeFee = 0, receiveDate = '', feeText = '';
+
+            if (inputValue <= 0) {
+                 resultsDiv.innerHTML = '<p class="text-center text-slate-500">Insira um valor válido.</p>';
+                 return;
+            }
+
+            switch(paymentMethod) {
+                case 'pix':
+                    if (calculationMode === 'charge') {
+                        saleAmount = inputValue;
+                        pagarmeeFee = saleAmount * (rates.pix / 100);
+                        netAmount = saleAmount - pagarmeeFee;
+                    } else {
+                        netAmount = inputValue;
+                        saleAmount = netAmount / (1 - (rates.pix / 100));
+                        pagarmeeFee = saleAmount - netAmount;
+                    }
+                    receiveDate = 'Instantâneo';
+                    feeText = `${formatCurrency(pagarmeeFee)} (${String(rates.pix).replace('.',',')}% a)`;
+                    break;
+                    
+                case 'boleto':
+                    if (calculationMode === 'charge') {
+                        saleAmount = inputValue;
+                        pagarmeeFee = rates.boleto;
+                        netAmount = saleAmount - pagarmeeFee;
+                    } else {
+                        netAmount = inputValue;
+                        saleAmount = netAmount + rates.boleto;
+                        pagarmeeFee = rates.boleto;
+                    }
+                    receiveDate = 'Em 2 dias úteis após pagamento';
+                    feeText = `${formatCurrency(pagarmeeFee)} (taxa fixa)`;
+                    break;
+                    
+                case 'credit_card':
+                    const ratePercent = rates.creditCard[installments];
+                    if (calculationMode === 'charge') {
+                        saleAmount = inputValue;
+                        pagarmeeFee = saleAmount * (ratePercent / 100);
+                        netAmount = saleAmount - pagarmeeFee;
+                    } else {
+                        netAmount = inputValue;
+                        saleAmount = netAmount / (1 - (ratePercent / 100));
+                        pagarmeeFee = saleAmount - netAmount;
+                    }
+                    receiveDate = 'Em até 15 dias corridos';
+                    feeText = `${formatCurrency(pagarmeeFee)} (${String(ratePercent).replace('.',',')}% a)`;
+                    break;
+            }
+            
+            let finalCardHTML = '';
+            if (calculationMode === 'receive' && saleAmount > netAmount) {
+                const discountPercent = ((saleAmount - netAmount) / saleAmount) * 100;
+                const discountIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#0ea5e9" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16Zm176,112H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z" opacity="0.0" /><path d="M208.49,199.51a12,12,0,0,1-17,17l-80-80a12,12,0,0,1,0-17l80-80a12,12,0,0,1,17,17L135,128ZM96,120a28,28,0,1,0-28-28A28,28,0,0,0,96,120Zm0-40a12,12,0,1,1-12,12A12,12,0,0,1,96,80Z" opacity="0.0" /><path d="M204,32H52a20,20,0,0,0-20,20V204a20,20,0,0,0,20,20H204a20,20,0,0,0,20-20V52A20,20,0,0,0,204,32ZM96,128a36,36,0,1,1,36-36A36,36,0,0,1,96,128Zm125.66,8.49-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,1,1,17-17L144,183,205.66,121.51a12,12,0,1,1,17,17Z" fill-rule="nonzero" stroke-width="1" stroke="none" fill="#0ea5e9"></path><path d="M96.5,72.5a24,24,0,1,1-24,24,24,24,0,0,1,24-24m0-12a36,36,0,1,0,36,36,36,36,0,0,0-36-36h0Z" fill-rule="nonzero" stroke-width="1" stroke="none" fill="#0ea5e9"></path><path d="M214.16,121.51,144,191.66,73.84,121.51a12,12,0,0,0-17,17l80,80a12,12,0,0,0,17,0l80-80a12,12,0,1,0-17-17Z" fill-rule="nonzero" stroke-width="1" stroke="none" fill="#0ea5e9"></path></svg>`;
+                finalCardHTML = createResultCard('Desconto para o cliente', `${discountPercent.toFixed(2).replace('.', ',')}%`, discountIcon);
+            } else {
+                const calendarIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#0ea5e9" viewBox="0 0 256 256"><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32Zm0,176H48V48H72v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V208Z"></path></svg>`;
+                finalCardHTML = createResultCard('Previsão de recebimento', receiveDate, calendarIcon);
+            }
+
+            const walletIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#0ea5e9" viewBox="0 0 256 256"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V72H40V56ZM40,200V88H216l.06,112Z"></path></svg>`;
+            const feeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#0ea5e9" viewBox="0 0 256 256"><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm-80,84a12,12,0,1,1,12-12A12,12,0,0,1,128,164Zm-16-84V56a32,32,0,0,1,64,0V80Z"></path></svg>`;
+            const priceIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#0ea5e9" viewBox="0 0 256 256"><path d="M244,112a8,8,0,0,0-8,8,108.2,108.2,0,0,1-22.65,66.19L191.24,164a8,8,0,0,0-13.43,8l24.11,48.21A8,8,0,0,0,210,224a4,4,0,0,0,2.06-.55,8,8,0,0,0,5.38-8.89l-9.84-49.22A124.12,124.12,0,0,0,232,120,8,8,0,0,0,224,112Zm-70.1-23.9-20-40a8,8,0,0,0-13.8,0l-20,40a8,8,0,0,0,13.8,8L140,89.57V216a8,8,0,0,0,16,0V89.57l6.15,6.53a8,8,0,0,0,6.9,3.9h0a8,8,0,0,0,6.9-11.9ZM96,160H40a8,8,0,0,0,0,16H96a8,8,0,0,0,0-16Zm0-40H40a8,8,0,0,0,0,16H96a8,8,0,0,0,0-16ZM40,96H96a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16Z"></path></svg>`;
+            
+            resultsDiv.innerHTML = 
+                createResultCard('Para receber (líquido)', formatCurrency(netAmount), walletIcon) +
+                createResultCard('Você deveria cobrar', formatCurrency(saleAmount), priceIcon) +
+                createResultCard('Taxas da venda', feeText, feeIcon) +
+                finalCardHTML;
+        };
+
+        // --- LÓGICA DO MODAL DE CONFIGURAÇÕES ---
+        const openSettingsModal = () => {
+            pixRateInput.value = String(rates.pix).replace('.', ',');
+            boletoRateInput.value = String(rates.boleto).replace('.', ',');
+            Object.keys(rates.creditCard).forEach(installment => {
+                document.getElementById(`rate-${installment}`).value = String(rates.creditCard[installment]).replace('.', ',');
+            });
+            settingsModal.classList.remove('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-95');
+        };
+
+        const closeSettingsModal = () => {
+            settingsModal.classList.add('opacity-0', 'pointer-events-none');
+            modalContent.classList.add('scale-95');
+        };
+
+        const saveSettings = () => {
+            const newRates = { creditCard: {} };
+            newRates.pix = parseFloat(pixRateInput.value.replace(',', '.')) || 0;
+            newRates.boleto = parseFloat(boletoRateInput.value.replace(',', '.')) || 0;
+            
+            for (let i = 1; i <= 12; i++) {
+                const input = document.getElementById(`rate-${i}`);
+                newRates.creditCard[i] = parseFloat(input.value.replace(',', '.')) || 0;
+            }
+
+            rates = newRates;
+            localStorage.setItem('pagarmeCalculatorRates', JSON.stringify(rates));
+            closeSettingsModal();
+            calculate();
+        };
+
+        const loadSettings = () => {
+            const savedRates = localStorage.getItem('pagarmeCalculatorRates');
+            if (savedRates) {
+                rates = JSON.parse(savedRates);
+            }
+        };
+
+        const generateCreditCardRateInputs = () => {
+            for (let i = 1; i <= 12; i++) {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <label for="rate-${i}" class="block text-sm font-medium text-slate-600 mb-1">${i}x</label>
+                    <input type="text" id="rate-${i}" class="w-full p-2 border border-slate-300 rounded-lg">
+                `;
+                creditCardRatesContainer.appendChild(div);
+            }
+        };
+        
+        // --- EVENT LISTENERS ---
+        [amountInput, paymentMethodSelect, installmentsSelect].forEach(element => {
+            element.addEventListener('input', calculate);
+        });
+        paymentMethodSelect.addEventListener('change', toggleCreditCardOptions);
+        btnCharge.addEventListener('click', () => { calculationMode = 'charge'; updateToggleUI(); calculate(); });
+        btnReceive.addEventListener('click', () => { calculationMode = 'receive'; updateToggleUI(); calculate(); });
+        
+        // Listeners do Modal
+        openSettingsBtn.addEventListener('click', openSettingsModal);
+        closeSettingsBtn.addEventListener('click', closeSettingsModal);
+        cancelSettingsBtn.addEventListener('click', closeSettingsModal);
+        saveSettingsBtn.addEventListener('click', saveSettings);
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) closeSettingsModal();
+        });
+
+
+        // --- INICIALIZAÇÃO E PROTEÇÃO DE CÓDIGO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            generateCreditCardRateInputs();
+            toggleCreditCardOptions();
+            updateToggleUI();
+            calculate();
+
+            // Proteção contra cópia de código
+            document.addEventListener('contextmenu', event => event.preventDefault());
+            document.addEventListener('keydown', event => {
+                if (event.key === 'F12' || 
+                   (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'i' || event.key === 'J' || event.key === 'j')) ||
+                   (event.ctrlKey && (event.key === 'U' || event.key === 'u'))) {
+                    event.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
